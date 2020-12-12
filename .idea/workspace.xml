@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="00883f05-ad3b-4a92-ad5b-6f9557364059" name="Default Changelist" comment="Falling and Colliding">
+    <list default="true" id="00883f05-ad3b-4a92-ad5b-6f9557364059" name="Default Changelist" comment="Random Pieces">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/game.js" beforeDir="false" afterPath="$PROJECT_DIR$/game.js" afterDir="false" />
     </list>
@@ -71,7 +71,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1607760553404</updated>
-      <workItem from="1607760558138" duration="24632000" />
+      <workItem from="1607760558138" duration="24934000" />
     </task>
     <task id="LOCAL-00001" summary="Init Commit">
       <created>1607771131873</created>
@@ -87,7 +87,14 @@
       <option name="project" value="LOCAL" />
       <updated>1607785348552</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Random Pieces">
+      <created>1607788361111</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1607788361111</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -96,7 +103,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Init Commit" />
     <MESSAGE value="Falling and Colliding" />
-    <option name="LAST_COMMIT_MESSAGE" value="Falling and Colliding" />
+    <MESSAGE value="Random Pieces" />
+    <option name="LAST_COMMIT_MESSAGE" value="Random Pieces" />
   </component>
   <component name="XDebuggerManager">
     <watches-manager>

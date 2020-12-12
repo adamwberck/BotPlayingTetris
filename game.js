@@ -55,7 +55,7 @@ const pieces = {
 
 const RAND_ARRAY = [pieces.J,pieces.I,pieces.L,pieces.O,pieces.S,pieces.Z,pieces.T];
 
-let next = pieces.I;
+let next = RAND_ARRAY[Math.floor(Math.random()*7)];
 
 const config = {
     type: Phaser.AUTO,
@@ -88,7 +88,7 @@ for(var i=0;i<20;i++){
 controlled = {
     x: 5,
     y: 0,
-    piece : JSON.parse(JSON.stringify(pieces.L))
+    piece : JSON.parse(JSON.stringify(RAND_ARRAY[Math.floor(Math.random()*7)]))
 };
 
 
@@ -147,7 +147,7 @@ function solidify_board() {
         let sqr = controlled.piece[i];
         let x = sqr[0]+controlled.x;
         let y = sqr[1]+controlled.y;
-        if(y>=0) {//Game Over
+        if(y>=0) {//Not Game Over
             board[y][x] = Math.abs(board[y][x]);
         }
     }
