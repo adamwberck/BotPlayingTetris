@@ -10,8 +10,8 @@ const c_clock = [
 
 const pieces = {
     T : [
-        [-1,0],
         [0,0],
+        [-1,0],
         [0,1],
         [1,0]
     ],
@@ -35,9 +35,9 @@ const pieces = {
     ],
     S : [
         [0,0 ],
-        [-1,0],
+        [1,0],
         [0,1],
-        [1,1]
+        [-1,1]
     ],
     O : [
         [0,0],
@@ -75,15 +75,15 @@ const game = new Phaser.Game(config);
 
 board = new Array(20);
 sprites = new Array(20);
-for(var i=0;i<20;i++){
+next_sprites = new Array(3);
+for(let i=0;i<20;i++){
     board[i] = new Array(10);
     sprites[i] = new Array(10);
+    if(i<3) {
+        next_sprites[i] = new Array(4);
+    }
     board[i].fill(0)
 }
-
-
-
-
 
 controlled = {
     x: 5,
@@ -105,8 +105,7 @@ let rotators = {};
 
 let INPUT_GRID = new Array(3);
 
-function create ()
-{
+function create () {
     cursors = this.input.keyboard.createCursorKeys();
 
     rotators.clock = this.input.keyboard.addKey('X');
@@ -118,11 +117,19 @@ function create ()
 
     this.add.grid(240, 32, 320, 640, 32, 32, 0xDDDDDD).setOrigin(0);
 
-    for(let i=0;i<10;i++){
-        for(let j=0;j<20;j++){
-            sprites[j][i] = this.add.image(LEFT+i*GRID_SIZE,TOP+j*GRID_SIZE,'block').setOrigin(0).setAlpha(0);
+    for (let i = 0; i < 10; i++) {
+        for (let j = 0; j < 20; j++) {
+            sprites[j][i] = this.add.image(LEFT + i * GRID_SIZE, TOP + j * GRID_SIZE, 'block').setOrigin(0).setAlpha(0);
         }
     }
+
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 4; j++) {
+            next_sprites[i][j] = this.add.image(LEFT + 420 + j * GRID_SIZE, TOP + 80 + i * GRID_SIZE, 'block').setOrigin(0)
+                .setAlpha(0);
+        }
+    }
+    draw_next();
 }
 
 const states = {
@@ -188,17 +195,31 @@ function solidify_board() {
     }
 }
 
+function draw_next() {
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 4; j++) {
+            next_sprites[i][j].setAlpha(0);
+        }
+    }
+    for (let i = 0; i < 4; i++) {
+        let x = next[i][0] + 2;
+        let y = next[i][1] + 1;
+        next_sprites[y][x].setAlpha(1);
+    }
+}
+
 function ready_next() {
     controlled.x = 5;
     controlled.y = 0;
     controlled.piece = JSON.parse(JSON.stringify(next));
     let r = Math.floor(Math.random() * 8);
     let temp_next = RAND_ARRAY[r];
-    if(r==7 || next == temp_next){
+    if(r==7 || next === temp_next){
         r = Math.floor(Math.random() * 7);
         temp_next = RAND_ARRAY[r];
     }
     next = temp_next;
+    draw_next();
 }
 
 let frame_time = 0;
@@ -296,14 +317,14 @@ function update(time,delta){
                 }
             }
             update_board();
-            fallTick = 20;
+            fallTick = 5;
         }
         fallTick--;
 
     }
 }
 
-function update_board(full) {
+function update_board() {
     for(let i=0;i<4;i++){
         let sqr = controlled.piece[i];
         let x = sqr[0]+controlled.x;
