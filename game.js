@@ -135,9 +135,10 @@ function create () {
 const states = {
     INTRO: "intro",
     FALLING: "falling",
+    ENDING : "ending"
 }
 
-let state = states.FALLING;
+let state = states.INTRO;
 
 
 function collided(movx, movy) {
@@ -179,6 +180,10 @@ function solidify_board() {
         let y = sqr[1]+controlled.y;
         if(y>=0) {//Not Game Over
             board[y][x] = Math.abs(board[y][x]);
+        }
+        else{//Game Over
+            state = states.ENDING;
+            fallTick = 130;
         }
     }
     let lines = 0;
@@ -252,7 +257,6 @@ function rotate(trans) {
 }
 
 function game_input() {
-    das--;
     let shifted = false;
     INPUT_GRID = [
         [cursors.left.isDown, -1, 0],
@@ -298,6 +302,7 @@ function update(time,delta){
     if(frame_time > 16.5) {//limit to 60
         frame_time = 0;
         //game input
+        das--;
         if(state===states.FALLING) {
             game_input();
         }
@@ -305,19 +310,29 @@ function update(time,delta){
         if (fallTick <= 0) {
             if (state === states.INTRO) {
                 state = states.FALLING;
-            } else if (state === states.FALLING) {
+            }
+            else if (state === states.FALLING) {
                 if (collided(0, 1)) {
                     state = states.INTRO;
-                    fallTick = 45;
+                    fallTick = 10;
                     solidify_board();
                     ready_next();
                 } else {
                     clear_piece();
                     controlled.y++;
+                    fallTick = 5;
+                }
+            }
+            else if (state === states.ENDING){
+                state = states.INTRO;
+                for(let i=0;i<20;i++){
+                    board[i].fill(0);
+                    for(let j=0;j<10;j++){
+                        sprites[i][j].setAlpha(0);
+                    }
                 }
             }
             update_board();
-            fallTick = 5;
         }
         fallTick--;
 

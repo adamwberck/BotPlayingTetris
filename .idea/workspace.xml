@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="00883f05-ad3b-4a92-ad5b-6f9557364059" name="Default Changelist" comment="Line clear improved">
+    <list default="true" id="00883f05-ad3b-4a92-ad5b-6f9557364059" name="Default Changelist" comment="Next Box">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/game.js" beforeDir="false" afterPath="$PROJECT_DIR$/game.js" afterDir="false" />
     </list>
@@ -71,7 +71,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1607760553404</updated>
-      <workItem from="1607760558138" duration="39090000" />
+      <workItem from="1607760558138" duration="41135000" />
     </task>
     <task id="LOCAL-00001" summary="Init Commit">
       <created>1607771131873</created>
@@ -129,7 +129,14 @@
       <option name="project" value="LOCAL" />
       <updated>1607799843224</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Next Box">
+      <created>1607803731701</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1607803731701</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -144,7 +151,8 @@
     <MESSAGE value="Rotation" />
     <MESSAGE value="Line clear" />
     <MESSAGE value="Line clear improved" />
-    <option name="LAST_COMMIT_MESSAGE" value="Line clear improved" />
+    <MESSAGE value="Next Box" />
+    <option name="LAST_COMMIT_MESSAGE" value="Next Box" />
   </component>
   <component name="XDebuggerManager">
     <watches-manager>
