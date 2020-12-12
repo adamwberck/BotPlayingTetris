@@ -101,11 +101,16 @@ const LEFT = 240;
 const TOP = 32;
 
 let cursors;
+let rotators = {};
+
+let INPUT_GRID = new Array(3);
 
 function create ()
 {
     cursors = this.input.keyboard.createCursorKeys();
 
+    rotators.clock = this.input.keyboard.addKey('X');
+    rotators.counter_clock = this.input.keyboard.addKey('Z');
     //camera
     this.cameras.main.setBounds(0, 0, 800, 1000);
     this.cameras.main.setZoom(.9);
@@ -172,63 +177,98 @@ function ready_next() {
 let frame_time = 0;
 
 
+let rdas = 0;
+
 let das = 0;
 let das_charged = false;
+
+
+
+function rotate(trans) {
+    let new_piece = Array(4);
+    for(let i=0;i<4;i++) {
+        new_piece[i] = Array(2);
+    }
+    for(let i=0;i<4;i++) {
+        let square = controlled.piece[i];
+        new_piece[i][0] = square[0]*trans[0][0]+square[1]*trans[1][0];
+        new_piece[i][1] = square[0]*trans[0][1]+square[1]*trans[1][1];
+    }
+    let old_piece = JSON.parse(JSON.stringify(controlled.piece));
+    clear_piece();
+    controlled.piece = JSON.parse(JSON.stringify(new_piece));
+    if(collided(0,0)){
+        controlled.piece = JSON.parse(JSON.stringify(old_piece));
+    }
+    update_board();
+}
+
+function game_input() {
+    das--;
+    let shifted = false;
+    INPUT_GRID = [
+        [cursors.left.isDown, -1, 0],
+        [cursors.right.isDown, 1, 0],
+        [cursors.down.isDown, 0, 1]
+    ]
+    for (let i = 0; i < 3; i++) {
+        if (INPUT_GRID[i][0]) {
+            shifted = true;
+            if (das <= 0) {
+                das = das_charged ? 6 : 16;
+                das_charged = true;
+                if (!collided(INPUT_GRID[i][1], INPUT_GRID[i][2])) {
+                    clear_piece();
+                    controlled.x += INPUT_GRID[i][1];
+                    controlled.y += INPUT_GRID[i][2];
+                    update_board();
+                }
+            }
+        }
+    }
+    if (!shifted) {
+        das = 0;
+        das_charged = false;
+    }
+    rdas--;
+    if (rdas <= 0 && JSON.stringify(controlled.piece) !== JSON.stringify(pieces.O)) {
+        if (rotators.clock.isDown) {
+            rdas = 16;
+            rotate(clock);
+        } else if (rotators.counter_clock.isDown) {
+            rdas = 16;
+            rotate(c_clock);
+        }
+    }
+    if (!rotators.clock.isDown && !rotators.counter_clock.isDown) {
+        rdas = 0;
+    }
+}
+
 function update(time,delta){
     frame_time += delta;
     if(frame_time > 16.5) {//limit to 60
         frame_time = 0;
         //game input
-        das--;
-        console.log(das)
-        if (cursors.left.isDown && das <= 0) {
-            das = das_charged ? 6 : 16;
-            das_charged = true;
-            if (!collided(-1, 0)) {
-                clearPiece();
-                controlled.x -= 1;
-                updateBoard();
-            }
+        if(state===states.FALLING) {
+            game_input();
         }
-        else if (cursors.right.isDown && das <= 0) {
-            das = das_charged ? 6 : 16;
-            das_charged = true;
-            if (!collided(1, 0)) {
-                clearPiece();
-                controlled.x += 1;
-                updateBoard();
-            }
-        }
-        else if (cursors.down.isDown && das <= 0) {
-            das = das_charged ? 6 : 16;
-            das_charged = true;
-            if (!collided(0, 1)) {
-                clearPiece();
-                controlled.y += 1;
-                updateBoard();
-            }
-        }
-        else if(!cursors.right.isDown && !cursors.left.isDown && !cursors.down.isDown) {
-            das = 0;
-            das_charged = false;
-        }
-
         //game loop
         if (fallTick <= 0) {
-            if (state == states.INTRO) {
+            if (state === states.INTRO) {
                 state = states.FALLING;
-            } else if (state == states.FALLING) {
+            } else if (state === states.FALLING) {
                 if (collided(0, 1)) {
                     state = states.INTRO;
                     fallTick = 45;
                     solidify_board();
                     ready_next();
                 } else {
-                    clearPiece();
+                    clear_piece();
                     controlled.y++;
                 }
             }
-            updateBoard();
+            update_board();
             fallTick = 10;
         }
         fallTick--;
@@ -236,7 +276,7 @@ function update(time,delta){
     }
 }
 
-function updateBoard() {
+function update_board() {
     for(let i=0;i<4;i++){
         let sqr = controlled.piece[i];
         let x = sqr[0]+controlled.x;
@@ -249,7 +289,7 @@ function updateBoard() {
 }
 
 
-function clearPiece(){
+function clear_piece(){
     for(let i=0;i<4;i++){
         let sqr = controlled.piece[i];
         let x = sqr[0]+controlled.x;
