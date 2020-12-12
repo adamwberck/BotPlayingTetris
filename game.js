@@ -7,17 +7,8 @@ const c_clock = [
     [0,-1],
     [1,0]
 ]
-const pieces = {
-    T : "T",
-    L : "L",
-    J : "J",
-    S : "S",
-    Z : "Z",
-    O : "O",
-    I : "I"
-}
 
-const squares = {
+const pieces = {
     T : [
         [-1,0],
         [0,0],
@@ -53,11 +44,18 @@ const squares = {
         [-1,0],
         [-1,1],
         [0,1]
+    ],
+    I : [
+        [0,0],
+        [-1,0],
+        [-2,0],
+        [1,0]
     ]
-
 }
 
-const next = pieces.I;
+const RAND_ARRAY = [pieces.J,pieces.I,pieces.L,pieces.O,pieces.S,pieces.Z,pieces.T];
+
+let next = pieces.I;
 
 const config = {
     type: Phaser.AUTO,
@@ -90,8 +88,7 @@ for(var i=0;i<20;i++){
 controlled = {
     x: 5,
     y: 0,
-    piece : pieces.T,
-    my_squares : JSON.parse(JSON.stringify(squares.T))
+    piece : JSON.parse(JSON.stringify(pieces.L))
 };
 
 
@@ -123,7 +120,6 @@ function create ()
 const states = {
     INTRO: "intro",
     FALLING: "falling",
-    LANDING: "landing",
 }
 
 let state = states.FALLING;
@@ -131,7 +127,7 @@ let state = states.FALLING;
 
 function collided(movx, movy) {
     for(let i=0;i<4;i++){
-        let sqr = controlled.my_squares[i];
+        let sqr = controlled.piece[i];
         let x = sqr[0]+controlled.x+movx;
         let y = sqr[1]+controlled.y+movy;
         if(y>=20 || x>=10 || x<0 || y<0){//hit edge
@@ -148,23 +144,39 @@ let fallTick = 45;
 
 function solidify_board() {
     for(let i=0;i<4;i++){
-        let sqr = controlled.my_squares[i];
+        let sqr = controlled.piece[i];
         let x = sqr[0]+controlled.x;
         let y = sqr[1]+controlled.y;
-        board[y][x] = Math.abs(board[y][x]);
+        if(y>=0) {//Game Over
+            board[y][x] = Math.abs(board[y][x]);
+        }
     }
+}
+
+function ready_next() {
+    controlled.x = 5;
+    controlled.y = 0;
+    controlled.piece = JSON.parse(JSON.stringify(next));
+    let r = Math.floor(Math.random() * 8);
+    let temp_next = RAND_ARRAY[r];
+    if(r==7 || next == temp_next){
+        r = Math.floor(Math.random() * 7);
+        temp_next = RAND_ARRAY[r];
+    }
+    next = temp_next;
 }
 
 function update(){
     //game loop
     if(fallTick<=0) {
-        if (state == states.FALLING) {
+        if(state == states.INTRO) {
+            state = states.FALLING;
+        }else if (state == states.FALLING) {
             if(collided(0,1)){
-                //state = states.INTRO;
-                solidify_board();
+                state = states.INTRO;
                 fallTick = 45;
-                controlled.x=5;
-                controlled.y=0;
+                solidify_board();
+                ready_next();
             }
             else{
                 clearPiece();
@@ -179,21 +191,25 @@ function update(){
 
 function updateBoard() {
     for(let i=0;i<4;i++){
-        let sqr = controlled.my_squares[i];
+        let sqr = controlled.piece[i];
         let x = sqr[0]+controlled.x;
         let y = sqr[1]+controlled.y;
-        board[y][x] = -1;
-        sprites[y][x].setAlpha(1);
+        if(y>=0) {
+            board[y][x] = -1;
+            sprites[y][x].setAlpha(1);
+        }
     }
 }
 
 
 function clearPiece(){
     for(let i=0;i<4;i++){
-        let sqr = controlled.my_squares[i];
+        let sqr = controlled.piece[i];
         let x = sqr[0]+controlled.x;
         let y = sqr[1]+controlled.y;
-        board[y][x] = 0;
-        sprites[y][x].setAlpha(0);
+        if(y>=0) {
+            board[y][x] = 0;
+            sprites[y][x].setAlpha(0);
+        }
     }
 }
