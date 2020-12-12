@@ -153,7 +153,7 @@ let fallTick = 45;
 function clear_line(line) {
     for(let i=line;i>=0;i--){
         if(i>0) {
-            board[i] = board[i - 1];
+            board[i] = JSON.parse(JSON.stringify(board[i - 1]));
         }
         else{
             board[0].fill(0);
@@ -296,7 +296,7 @@ function update(time,delta){
                 }
             }
             update_board();
-            fallTick = 10;
+            fallTick = 20;
         }
         fallTick--;
 
