@@ -325,6 +325,8 @@ function update(time,delta){
             }
             else if (state === states.ENDING){
                 state = states.INTRO;
+                ready_next();
+                ready_next();
                 for(let i=0;i<20;i++){
                     board[i].fill(0);
                     for(let j=0;j<10;j++){
