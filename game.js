@@ -150,6 +150,21 @@ function collided(movx, movy) {
 
 let fallTick = 45;
 
+function clear_line(line) {
+    for(let i=line;i>=0;i--){
+        if(i>0) {
+            board[i] = board[i - 1];
+        }
+        else{
+            board[0].fill(0);
+        }
+        for(let j=0;j<10;j++){
+            let alpha = board[i][j]===0 ? 0 : 1;
+            sprites[i][j].setAlpha(alpha);
+        }
+    }
+}
+
 function solidify_board() {
     for(let i=0;i<4;i++){
         let sqr = controlled.piece[i];
@@ -157,6 +172,18 @@ function solidify_board() {
         let y = sqr[1]+controlled.y;
         if(y>=0) {//Not Game Over
             board[y][x] = Math.abs(board[y][x]);
+        }
+    }
+    let lines = 0;
+    for(let i=0;i<20;i++){
+        for(let j=0;j<10;j++){
+            if(board[i][j]===0){
+                j=10;
+            }
+            else if(j>=9){
+                clear_line(i);
+                lines++;
+            }
         }
     }
 }
@@ -276,7 +303,7 @@ function update(time,delta){
     }
 }
 
-function update_board() {
+function update_board(full) {
     for(let i=0;i<4;i++){
         let sqr = controlled.piece[i];
         let x = sqr[0]+controlled.x;
