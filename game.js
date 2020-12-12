@@ -100,9 +100,12 @@ const GRID_SIZE = 32;
 const LEFT = 240;
 const TOP = 32;
 
+let cursors;
 
 function create ()
 {
+    cursors = this.input.keyboard.createCursorKeys();
+
     //camera
     this.cameras.main.setBounds(0, 0, 800, 1000);
     this.cameras.main.setZoom(.9);
@@ -166,27 +169,71 @@ function ready_next() {
     next = temp_next;
 }
 
-function update(){
-    //game loop
-    if(fallTick<=0) {
-        if(state == states.INTRO) {
-            state = states.FALLING;
-        }else if (state == states.FALLING) {
-            if(collided(0,1)){
-                state = states.INTRO;
-                fallTick = 45;
-                solidify_board();
-                ready_next();
-            }
-            else{
+let frame_time = 0;
+
+
+let das = 0;
+let das_charged = false;
+function update(time,delta){
+    frame_time += delta;
+    if(frame_time > 16.5) {//limit to 60
+        frame_time = 0;
+        //game input
+        das--;
+        console.log(das)
+        if (cursors.left.isDown && das <= 0) {
+            das = das_charged ? 6 : 16;
+            das_charged = true;
+            if (!collided(-1, 0)) {
                 clearPiece();
-                controlled.y++;
+                controlled.x -= 1;
+                updateBoard();
             }
         }
-        updateBoard();
-        fallTick = 10;
+        else if (cursors.right.isDown && das <= 0) {
+            das = das_charged ? 6 : 16;
+            das_charged = true;
+            if (!collided(1, 0)) {
+                clearPiece();
+                controlled.x += 1;
+                updateBoard();
+            }
+        }
+        else if (cursors.down.isDown && das <= 0) {
+            das = das_charged ? 6 : 16;
+            das_charged = true;
+            if (!collided(0, 1)) {
+                clearPiece();
+                controlled.y += 1;
+                updateBoard();
+            }
+        }
+        else if(!cursors.right.isDown && !cursors.left.isDown && !cursors.down.isDown) {
+            das = 0;
+            das_charged = false;
+        }
+
+        //game loop
+        if (fallTick <= 0) {
+            if (state == states.INTRO) {
+                state = states.FALLING;
+            } else if (state == states.FALLING) {
+                if (collided(0, 1)) {
+                    state = states.INTRO;
+                    fallTick = 45;
+                    solidify_board();
+                    ready_next();
+                } else {
+                    clearPiece();
+                    controlled.y++;
+                }
+            }
+            updateBoard();
+            fallTick = 10;
+        }
+        fallTick--;
+
     }
-    fallTick--;
 }
 
 function updateBoard() {
