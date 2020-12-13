@@ -23,8 +23,8 @@ const pieces = {
     ],
     J : [
         [0,0],
+        [1,0],
         [-1,0],
-        [0,1],
         [1,1]
     ],
     Z : [
@@ -53,9 +53,32 @@ const pieces = {
     ]
 }
 
-const RAND_ARRAY = [pieces.J,pieces.I,pieces.L,pieces.O,pieces.S,pieces.Z,pieces.T];
+const types = {
+    symmetric : "symmetric",
+    zee : "zee",
+    jay : "jay"
+}
 
-let next = RAND_ARRAY[Math.floor(Math.random()*7)];
+const PIECE_ARRAY = [
+    pieces.J,
+    pieces.I,
+    pieces.L,
+    pieces.O,
+    pieces.S,
+    pieces.Z,
+    pieces.T];
+const TYPE_ARRAY =  [
+    types.jay,
+    types.symmetric,
+    types.zee,
+    types.symmetric,
+    types.jay,
+    types.zee,
+    types.symmetric];
+let n_rand = Math.floor(Math.random()*7);
+let next = PIECE_ARRAY[n_rand];
+let next_type = TYPE_ARRAY[n_rand];
+
 
 const config = {
     type: Phaser.AUTO,
@@ -85,16 +108,21 @@ for(let i=0;i<20;i++){
     board[i].fill(0)
 }
 
+
+let r =  Math.floor(Math.random()*7);
+
 controlled = {
     x: 5,
     y: 0,
-    piece : JSON.parse(JSON.stringify(RAND_ARRAY[Math.floor(Math.random()*7)]))
+    piece : JSON.parse(JSON.stringify(PIECE_ARRAY[r])),
+    type : TYPE_ARRAY[r]
 };
 
 
 function preload () {
-    this.load.image('block','assets/red/red.png')
-    this.load.image('wblock','assets/red/redwhite.png')
+    this.load.image('jay','assets/red/red.png')
+    this.load.image('symmetric','assets/red/redwhite.png')
+    this.load.image('zee','assets/red/gray.png')
 }
 const GRID_SIZE = 32;
 const LEFT = 240;
@@ -119,13 +147,13 @@ function create () {
 
     for (let i = 0; i < 10; i++) {
         for (let j = 0; j < 20; j++) {
-            sprites[j][i] = this.add.image(LEFT + i * GRID_SIZE, TOP + j * GRID_SIZE, 'block').setOrigin(0).setAlpha(0);
+            sprites[j][i] = this.add.image(LEFT + i * GRID_SIZE, TOP + j * GRID_SIZE, 'jay').setOrigin(0).setAlpha(0);
         }
     }
 
     for (let i = 0; i < 3; i++) {
         for (let j = 0; j < 4; j++) {
-            next_sprites[i][j] = this.add.image(LEFT + 420 + j * GRID_SIZE, TOP + 80 + i * GRID_SIZE, 'block').setOrigin(0)
+            next_sprites[i][j] = this.add.image(LEFT + 420 + j * GRID_SIZE, TOP + 80 + i * GRID_SIZE, 'zee').setOrigin(0)
                 .setAlpha(0);
         }
     }
@@ -135,7 +163,8 @@ function create () {
 const states = {
     INTRO: "intro",
     FALLING: "falling",
-    ENDING : "ending"
+    ENDING : "ending",
+    CLEARING : "clearing"
 }
 
 let state = states.INTRO;
@@ -156,22 +185,42 @@ function collided(movx, movy) {
     return false;
 }
 
-let fallTick = 45;
+let fall_tick = 45;
 
-function clear_line(line) {
-    for(let i=line;i>=0;i--){
-        if(i>0) {
-            board[i] = JSON.parse(JSON.stringify(board[i - 1]));
-        }
-        else{
-            board[0].fill(0);
-        }
-        for(let j=0;j<10;j++){
-            let alpha = board[i][j]===0 ? 0 : 1;
-            sprites[i][j].setAlpha(alpha);
+function clear_line() {
+    for(let i=0;i<lines;i++) {
+        let line = line_cleared[i];
+        for (let i = line; i >= 0; i--) {
+            if (i > 0) {
+                board[i] = JSON.parse(JSON.stringify(board[i - 1]));
+            } else {
+                board[0].fill(0);
+            }
+            for (let j = 0; j < 10; j++) {
+                let block = board[i][j];
+                let alpha = block === 0 ? 0 : 1;
+                sprites[i][j].setAlpha(alpha);
+                if (block > 0) {
+                    switch (block) {
+                        case 1:
+                            sprites[i][j].setTexture(types.zee);
+                            break;
+                        case 2:
+                            sprites[i][j].setTexture(types.jay);
+                            break;
+                        case 3:
+                            sprites[i][j].setTexture(types.symmetric);
+                            break;
+                    }
+                }
+            }
         }
     }
+    lines =0;
 }
+
+let line_cleared = Array(4);
+let lines = 0;
 
 function solidify_board() {
     for(let i=0;i<4;i++){
@@ -183,20 +232,30 @@ function solidify_board() {
         }
         else{//Game Over
             state = states.ENDING;
-            fallTick = 130;
+            fall_tick = 130;
         }
     }
-    let lines = 0;
     for(let i=0;i<20;i++){
         for(let j=0;j<10;j++){
             if(board[i][j]===0){
                 j=10;
             }
             else if(j>=9){
-                clear_line(i);
+                line_cleared[lines]=i;
                 lines++;
+                fall_tick+=3;
             }
         }
+    }
+    if(lines>0){
+        fall_tick+=4;
+        state = states.CLEARING;
+        clear_animate();
+        console.log(line_cleared);
+    }
+    else{
+        ready_next();
+        refresh_board();
     }
 }
 
@@ -210,6 +269,7 @@ function draw_next() {
         let x = next[i][0] + 2;
         let y = next[i][1] + 1;
         next_sprites[y][x].setAlpha(1);
+        next_sprites[y][x].setTexture(next_type);
     }
 }
 
@@ -217,13 +277,15 @@ function ready_next() {
     controlled.x = 5;
     controlled.y = 0;
     controlled.piece = JSON.parse(JSON.stringify(next));
+    controlled.type = next_type;
     let r = Math.floor(Math.random() * 8);
-    let temp_next = RAND_ARRAY[r];
-    if(r==7 || next === temp_next){
+    let temp_next = PIECE_ARRAY[r];
+    if(r===7 || next === temp_next){
         r = Math.floor(Math.random() * 7);
-        temp_next = RAND_ARRAY[r];
+        temp_next = PIECE_ARRAY[r];
     }
     next = temp_next;
+    next_type = TYPE_ARRAY[r]
     draw_next();
 }
 
@@ -242,7 +304,8 @@ function rotate(trans) {
     for(let i=0;i<4;i++) {
         new_piece[i] = Array(2);
     }
-    for(let i=0;i<4;i++) {
+    new_piece[0].fill(0);
+    for(let i=1;i<4;i++) {
         let square = controlled.piece[i];
         new_piece[i][0] = square[0]*trans[0][0]+square[1]*trans[1][0];
         new_piece[i][1] = square[0]*trans[0][1]+square[1]*trans[1][1];
@@ -253,7 +316,7 @@ function rotate(trans) {
     if(collided(0,0)){
         controlled.piece = JSON.parse(JSON.stringify(old_piece));
     }
-    update_board();
+    refresh_board();
 }
 
 function game_input() {
@@ -273,7 +336,7 @@ function game_input() {
                     clear_piece();
                     controlled.x += INPUT_GRID[i][1];
                     controlled.y += INPUT_GRID[i][2];
-                    update_board();
+                    refresh_board();
                 }
             }
         }
@@ -297,6 +360,14 @@ function game_input() {
     }
 }
 
+function clear_animate() {
+    for(let j=0 ;j<lines;j++) {
+        for (let i = 0; i < 10; i++) {
+            sprites[line_cleared[j]][i].setAlpha(0);
+        }
+    }
+}
+
 function update(time,delta){
     frame_time += delta;
     if(frame_time > 16.5) {//limit to 60
@@ -307,21 +378,26 @@ function update(time,delta){
             game_input();
         }
         //game loop
-        if (fallTick <= 0) {
+        if (fall_tick <= 0) {
             if (state === states.INTRO) {
                 state = states.FALLING;
             }
             else if (state === states.FALLING) {
                 if (collided(0, 1)) {
                     state = states.INTRO;
-                    fallTick = 10;
+                    fall_tick = 10;
                     solidify_board();
-                    ready_next();
                 } else {
                     clear_piece();
                     controlled.y++;
-                    fallTick = 5;
+                    refresh_board();
+                    fall_tick = 6;
                 }
+            }
+            else if(state === states.CLEARING){
+                clear_line();
+                state = states.INTRO;
+                ready_next();
             }
             else if (state === states.ENDING){
                 state = states.INTRO;
@@ -334,21 +410,33 @@ function update(time,delta){
                     }
                 }
             }
-            update_board();
         }
-        fallTick--;
+        fall_tick--;
 
     }
 }
 
-function update_board() {
+function num_from_type(type) {
+    if(type === types.zee){
+        return 1;
+    }
+    else if(type === types.jay){
+        return 2;
+    }
+    else if(type === types.symmetric){
+        return 3;
+    }
+}
+
+function refresh_board() {
     for(let i=0;i<4;i++){
         let sqr = controlled.piece[i];
         let x = sqr[0]+controlled.x;
         let y = sqr[1]+controlled.y;
         if(y>=0) {
-            board[y][x] = -1;
+            board[y][x] = -num_from_type(controlled.type);
             sprites[y][x].setAlpha(1);
+            sprites[y][x].setTexture(controlled.type);
         }
     }
 }

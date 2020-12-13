@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="00883f05-ad3b-4a92-ad5b-6f9557364059" name="Default Changelist" comment="Game Over fixed Next">
+    <list default="true" id="00883f05-ad3b-4a92-ad5b-6f9557364059" name="Default Changelist" comment="Fixed Start rotation">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/game.js" beforeDir="false" afterPath="$PROJECT_DIR$/game.js" afterDir="false" />
     </list>
@@ -41,6 +41,7 @@
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="nodejs_package_manager_path" value="npm" />
+    <property name="restartRequiresConfirmation" value="false" />
     <property name="vue.rearranger.settings.migration" value="true" />
   </component>
   <component name="RunManager" selected="JavaScript Debug.index.html">
@@ -71,7 +72,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1607760553404</updated>
-      <workItem from="1607760558138" duration="41692000" />
+      <workItem from="1607760558138" duration="61629000" />
     </task>
     <task id="LOCAL-00001" summary="Init Commit">
       <created>1607771131873</created>
@@ -150,7 +151,14 @@
       <option name="project" value="LOCAL" />
       <updated>1607805932676</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="Fixed Start rotation">
+      <created>1607806502765</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1607806502765</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -168,15 +176,27 @@
     <MESSAGE value="Next Box" />
     <MESSAGE value="Game Over" />
     <MESSAGE value="Game Over fixed Next" />
-    <option name="LAST_COMMIT_MESSAGE" value="Game Over fixed Next" />
+    <MESSAGE value="Fixed Start rotation" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed Start rotation" />
   </component>
   <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint type="javascript">
+          <url>file://$PROJECT_DIR$/game.js</url>
+          <line>191</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="83" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
     <watches-manager>
       <configuration name="JavascriptDebugType">
         <watch expression="controlled" />
         <watch expression="board" />
         <watch expression="next_sprites" />
         <watch expression="next" />
+        <watch expression="line_cleared" language="JavaScript" />
       </configuration>
     </watches-manager>
   </component>
