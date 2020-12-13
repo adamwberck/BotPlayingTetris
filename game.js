@@ -8,6 +8,16 @@ const c_clock = [
     [1,0]
 ]
 
+const piece_id = {
+    T : "T",
+    L : "L",
+    J : "J",
+    Z : "Z",
+    S : "S",
+    O : "O",
+    I : "I"
+}
+
 const pieces = {
     T : [
         [0,0],
@@ -58,7 +68,14 @@ const types = {
     zee : "zee",
     jay : "jay"
 }
-
+const ID_ARRAY = [
+    piece_id.J,
+    piece_id.I,
+    piece_id.L,
+    piece_id.O,
+    piece_id.S,
+    piece_id.Z,
+    piece_id.T];
 const PIECE_ARRAY = [
     pieces.J,
     pieces.I,
@@ -75,9 +92,12 @@ const TYPE_ARRAY =  [
     types.jay,
     types.zee,
     types.symmetric];
+
+
 let n_rand = Math.floor(Math.random()*7);
 let next = PIECE_ARRAY[n_rand];
 let next_type = TYPE_ARRAY[n_rand];
+let next_id = ID_ARRAY[n_rand];
 
 
 const config = {
@@ -115,7 +135,9 @@ controlled = {
     x: 5,
     y: 0,
     piece : JSON.parse(JSON.stringify(PIECE_ARRAY[r])),
-    type : TYPE_ARRAY[r]
+    type : TYPE_ARRAY[r],
+    id : ID_ARRAY[r],
+    rotated : false
 };
 
 
@@ -201,15 +223,16 @@ function clear_line() {
                 let alpha = block === 0 ? 0 : 1;
                 sprites[i][j].setAlpha(alpha);
                 if (block > 0) {
+                    let sprite = sprites[i][j];
                     switch (block) {
                         case 1:
-                            sprites[i][j].setTexture(types.zee);
+                            set_texture_by_level(sprite,types.zee);
                             break;
                         case 2:
-                            sprites[i][j].setTexture(types.jay);
+                            set_texture_by_level(sprite,types.jay);
                             break;
                         case 3:
-                            sprites[i][j].setTexture(types.symmetric);
+                            set_texture_by_level(sprite,types.symmetric);
                             break;
                     }
                 }
@@ -243,7 +266,7 @@ function solidify_board() {
             else if(j>=9){
                 line_cleared[lines]=i;
                 lines++;
-                fall_tick+=3;
+                fall_tick+=2;
             }
         }
     }
@@ -259,6 +282,10 @@ function solidify_board() {
     }
 }
 
+function set_texture_by_level(sprite, type) {
+    sprite.setTexture(type);
+}
+
 function draw_next() {
     for (let i = 0; i < 3; i++) {
         for (let j = 0; j < 4; j++) {
@@ -269,15 +296,17 @@ function draw_next() {
         let x = next[i][0] + 2;
         let y = next[i][1] + 1;
         next_sprites[y][x].setAlpha(1);
-        next_sprites[y][x].setTexture(next_type);
+        set_texture_by_level(next_sprites[y][x],next_type);
     }
 }
 
 function ready_next() {
     controlled.x = 5;
     controlled.y = 0;
+    controlled.rotated = false;
     controlled.piece = JSON.parse(JSON.stringify(next));
     controlled.type = next_type;
+    controlled.id = next_id;
     let r = Math.floor(Math.random() * 8);
     let temp_next = PIECE_ARRAY[r];
     if(r===7 || next === temp_next){
@@ -286,20 +315,30 @@ function ready_next() {
     }
     next = temp_next;
     next_type = TYPE_ARRAY[r]
+    next_id = ID_ARRAY[r];
     draw_next();
 }
 
 let frame_time = 0;
 
 
-let rdas = 0;
+let r_das = false;
 
 let das = 0;
 let das_charged = false;
 
-
+function rotate_by_piece(trans){
+    if(controlled.id === piece_id.I || controlled.id === piece_id.Z || controlled.id === piece_id.S
+    ){
+        rotate(controlled.rotated ? clock : c_clock);
+    }
+    else if(controlled.id !== piece_id.O){
+        rotate(trans);
+    }
+}
 
 function rotate(trans) {
+    controlled.rotated = !controlled.rotated;
     let new_piece = Array(4);
     for(let i=0;i<4;i++) {
         new_piece[i] = Array(2);
@@ -345,18 +384,18 @@ function game_input() {
         das = 0;
         das_charged = false;
     }
-    rdas--;
-    if (rdas <= 0 && JSON.stringify(controlled.piece) !== JSON.stringify(pieces.O)) {
+
+    if (!r_das) {
         if (rotators.clock.isDown) {
-            rdas = 16;
-            rotate(clock);
+            rotate_by_piece(clock);
+            r_das = true;
         } else if (rotators.counter_clock.isDown) {
-            rdas = 16;
-            rotate(c_clock);
+            rotate_by_piece(c_clock);
+            r_das = true;
         }
     }
     if (!rotators.clock.isDown && !rotators.counter_clock.isDown) {
-        rdas = 0;
+        r_das = false;
     }
 }
 
@@ -385,13 +424,14 @@ function update(time,delta){
             else if (state === states.FALLING) {
                 if (collided(0, 1)) {
                     state = states.INTRO;
-                    fall_tick = 10;
+                    fall_tick = 30;
                     solidify_board();
-                } else {
+                }
+                else {
                     clear_piece();
                     controlled.y++;
                     refresh_board();
-                    fall_tick = 6;
+                    fall_tick = 5;
                 }
             }
             else if(state === states.CLEARING){
@@ -436,7 +476,7 @@ function refresh_board() {
         if(y>=0) {
             board[y][x] = -num_from_type(controlled.type);
             sprites[y][x].setAlpha(1);
-            sprites[y][x].setTexture(controlled.type);
+            set_texture_by_level(sprites[y][x],controlled.type);
         }
     }
 }
