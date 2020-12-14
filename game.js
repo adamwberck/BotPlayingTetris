@@ -148,10 +148,14 @@ function preload () {
 }
 const GRID_SIZE = 32;
 const LEFT = 240;
-const TOP = 32;
+const TOP = 80;
 
 let cursors;
 let rotators = {};
+
+let level_text;
+let lines_text;
+let score_text;
 
 
 function create () {
@@ -164,7 +168,23 @@ function create () {
     this.cameras.main.setZoom(.9);
     this.cameras.main.centerOn(0, 0);
 
-    this.add.grid(240, 32, 320, 640, 32, 32, 0xDDDDDD).setOrigin(0);
+    this.add.grid(LEFT, TOP, 10 * GRID_SIZE, 20 * GRID_SIZE, GRID_SIZE, GRID_SIZE, 0xDDDDDD)
+        .setOrigin(0);
+
+    score_text = this.add.text(LEFT+GRID_SIZE*3,20 ,"0000000",
+        { fontFamily: 'Courier',fontSize: '35px', fill: '#FFF',fontStyle : 'bold'});
+
+
+    this.add.text(LEFT-160, TOP ,"Level",
+        { fontFamily: 'Arial',fontSize: '38px', fill: '#FFF'});
+    level_text = this.add.text(LEFT-130, TOP+40 ,"00",
+        { fontFamily: 'Courier',fontSize: '30px', fill: '#FFF',fontStyle: 'bold'});
+
+    this.add.text(LEFT-160, TOP+80 ,"Lines",
+        { fontFamily: 'Arial',fontSize: '38px', fill: '#FFF'});
+    lines_text = this.add.text(LEFT-135, TOP+120 ,"000",
+        { fontFamily: 'Courier',fontSize: '30px', fill: '#FFF',fontStyle: 'bold'});
+
 
     for (let i = 0; i < 10; i++) {
         for (let j = 0; j < 20; j++) {
@@ -210,7 +230,7 @@ function collided(mov_x, mov_y) {
 let fall_tick = 96;
 
 function clear_line() {
-    for(let i=0;i<lines;i++) {
+    for(let i=0;i<lines_just_cleared;i++) {
         let line = line_cleared[i];
         for (let i = line; i >= 0; i--) {
             if (i > 0) {
@@ -239,11 +259,21 @@ function clear_line() {
             }
         }
     }
-    lines =0;
+    lines_just_cleared =0;
 }
 
 let line_cleared = Array(4);
-let lines = 0;
+let lines_just_cleared = 0;
+let next_level_lines  = 10;
+let score = 0;
+
+
+function pad(num, size) {
+    num = num.toString();
+    while (num.length < size) num = "0" + num;
+    return num;
+}
+
 
 function solidify_board() {
     for(let i=0;i<4;i++){
@@ -260,18 +290,28 @@ function solidify_board() {
                 j=10;
             }
             else if(j>=9){
-                line_cleared[lines]=i;
-                lines++;
+                line_cleared[lines_just_cleared]=i;
+                lines_just_cleared++;
             }
         }
     }
-    if(lines>0){
-        fall_tick+=9;
+    if (lines_just_cleared > 0) {
+        total_lines += lines_just_cleared;
+        next_level_lines -= lines_just_cleared;
+        let points = SCORE_ARRAY[lines_just_cleared - 1] * (level + 1);
+        score += points
+        score_text.setText(pad(score,7));
+        if (next_level_lines <= 0) {
+            next_level_lines += 10;
+            level++;
+        }
+        level_text.setText(pad(level,2));
+        lines_text.setText(pad(total_lines,3));
+        fall_tick = 10;
         state = states.CLEARING;
         clear_animate();
         console.log(line_cleared);
-    }
-    else{
+    } else {
         state = states.FALLING;
         ready_next();
         refresh_board();
@@ -316,7 +356,7 @@ function ready_next() {
     controlled.piece = JSON.parse(JSON.stringify(next));
     controlled.type = next_type;
 
-    if(full_collided(0,1)){//game over
+    if(collided(0,0)){//game over
         state = states.ENDING;
         fall_tick = 100;
     }
@@ -343,6 +383,32 @@ let das_charged = false;
 let d_das_reset = true;
 let d_das = 0;
 let d_das_charged = false;
+
+const SCORE_ARRAY = [
+    40,100,300,1200
+]
+
+const SPEED_ARRAY = [
+    48,43,38,33,28,23,18,13,8,6,5,4,3,2,1
+]
+function speed_from_level(){
+    if(level<10){
+        return SPEED_ARRAY[level]+1;
+    }else if (level<13){
+        return SPEED_ARRAY[10]+1;
+    }else if (level<16){
+        return SPEED_ARRAY[11]+1;
+    }else if (level<19){
+        return SPEED_ARRAY[12]+1;
+    }else if (level<29){
+        return SPEED_ARRAY[13]+1;
+    }
+}
+
+
+let level = 0;
+let total_lines = 0;
+
 
 function rotate_by_piece(trans){
     if(controlled.id === piece_id.I || controlled.id === piece_id.Z || controlled.id === piece_id.S
@@ -387,8 +453,8 @@ function game_input() {
             clear_piece()
             controlled.y += 1;
             refresh_board();
-            if(fall_tick>=45){
-                fall_tick = 20;
+            if(fall_tick>48){
+                fall_tick = speed_from_level();
             }
         }else{ //lock in piece
             fall_tick =0;
@@ -432,7 +498,7 @@ function game_input() {
 }
 
 function clear_animate() {
-    for(let j=0 ;j<lines;j++) {
+    for(let j=0 ;j<lines_just_cleared;j++) {
         for (let i = 0; i < 10; i++) {
             sprites[line_cleared[j]][i].setAlpha(0);
         }
@@ -452,7 +518,7 @@ function update(time,delta){
         //game loop
         if (fall_tick <= 0) {
             if (state === states.FALLING) {
-                fall_tick = 30;
+                fall_tick = speed_from_level();
                 if (collided(0, 1)) {
                     d_das_reset = false;
                     solidify_board();
