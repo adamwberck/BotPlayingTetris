@@ -133,7 +133,7 @@ let r =  Math.floor(Math.random()*7);
 
 controlled = {
     x: 5,
-    y: 0,
+    y: r === 5 ? 1 : 0,
     piece : JSON.parse(JSON.stringify(PIECE_ARRAY[r])),
     type : TYPE_ARRAY[r],
     id : ID_ARRAY[r],
@@ -153,7 +153,6 @@ const TOP = 32;
 let cursors;
 let rotators = {};
 
-let INPUT_GRID = new Array(3);
 
 function create () {
     cursors = this.input.keyboard.createCursorKeys();
@@ -179,6 +178,7 @@ function create () {
                 .setAlpha(0);
         }
     }
+    refresh_board();
     draw_next();
 }
 
@@ -189,25 +189,25 @@ const states = {
     CLEARING : "clearing"
 }
 
-let state = states.INTRO;
+let state = states.FALLING;
 
 
-function collided(movx, movy) {
+function collided(mov_x, mov_y) {
     for(let i=0;i<4;i++){
         let sqr = controlled.piece[i];
-        let x = sqr[0]+controlled.x+movx;
-        let y = sqr[1]+controlled.y+movy;
-        if(y>=20 || x>=10 || x<0 || y<0){//hit edge
+        let x = sqr[0]+controlled.x+mov_x;
+        let y = sqr[1]+controlled.y+mov_y;
+        if(y>=20 || x>=10 || x<0){//hit edge
             return true;
         }
-        else if(board[y][x]>0){//hit block
+        else if(y>=0 && board[y][x]>0){//hit block
             return true;
         }
     }
     return false;
 }
 
-let fall_tick = 45;
+let fall_tick = 96;
 
 function clear_line() {
     for(let i=0;i<lines;i++) {
@@ -253,10 +253,6 @@ function solidify_board() {
         if(y>=0) {//Not Game Over
             board[y][x] = Math.abs(board[y][x]);
         }
-        else{//Game Over
-            state = states.ENDING;
-            fall_tick = 130;
-        }
     }
     for(let i=0;i<20;i++){
         for(let j=0;j<10;j++){
@@ -266,17 +262,17 @@ function solidify_board() {
             else if(j>=9){
                 line_cleared[lines]=i;
                 lines++;
-                fall_tick+=2;
             }
         }
     }
     if(lines>0){
-        fall_tick+=4;
+        fall_tick+=9;
         state = states.CLEARING;
         clear_animate();
         console.log(line_cleared);
     }
     else{
+        state = states.FALLING;
         ready_next();
         refresh_board();
     }
@@ -300,13 +296,30 @@ function draw_next() {
     }
 }
 
+function full_collided(mov_x, mov_y) {
+    for(let i=0;i<4;i++) {
+        let sqr = controlled.piece[i];
+        let x = sqr[0] + controlled.x + mov_x;
+        let y = sqr[1] + controlled.y + mov_y;
+        if(board[y][x]===0){
+            return false;
+        }
+    }
+    return true;
+}
+
 function ready_next() {
+    controlled.id = next_id;
     controlled.x = 5;
-    controlled.y = 0;
+    controlled.y = next_id===piece_id.Z ? 1 : 0;
     controlled.rotated = false;
     controlled.piece = JSON.parse(JSON.stringify(next));
     controlled.type = next_type;
-    controlled.id = next_id;
+
+    if(full_collided(0,1)){//game over
+        state = states.ENDING;
+        fall_tick = 100;
+    }
     let r = Math.floor(Math.random() * 8);
     let temp_next = PIECE_ARRAY[r];
     if(r===7 || next === temp_next){
@@ -326,6 +339,10 @@ let r_das = false;
 
 let das = 0;
 let das_charged = false;
+
+let d_das_reset = true;
+let d_das = 0;
+let d_das_charged = false;
 
 function rotate_by_piece(trans){
     if(controlled.id === piece_id.I || controlled.id === piece_id.Z || controlled.id === piece_id.S
@@ -359,22 +376,37 @@ function rotate(trans) {
 }
 
 function game_input() {
-    let shifted = false;
-    INPUT_GRID = [
+    const INPUT_GRID = [
         [cursors.left.isDown, -1, 0],
         [cursors.right.isDown, 1, 0],
-        [cursors.down.isDown, 0, 1]
     ]
-    for (let i = 0; i < 3; i++) {
+    if(d_das <= 0 && cursors.down.isDown && d_das_reset) {
+        d_das = d_das_charged ? 2 : 4;
+        d_das_charged = true;
+        if(!collided(0,1)) {
+            clear_piece()
+            controlled.y += 1;
+            refresh_board();
+            if(fall_tick>=45){
+                fall_tick = 20;
+            }
+        }else{ //lock in piece
+            fall_tick =0;
+        }
+    }else if(!cursors.down.isDown){
+        d_das_charged = false;
+        d_das_reset = true;
+    }
+    let shifted = false;
+    for (let i = 0; i < 2; i++) {
         if (INPUT_GRID[i][0]) {
             shifted = true;
             if (das <= 0) {
                 das = das_charged ? 6 : 16;
                 das_charged = true;
-                if (!collided(INPUT_GRID[i][1], INPUT_GRID[i][2])) {
+                if (!collided(INPUT_GRID[i][1],0 )) {
                     clear_piece();
                     controlled.x += INPUT_GRID[i][1];
-                    controlled.y += INPUT_GRID[i][2];
                     refresh_board();
                 }
             }
@@ -413,34 +445,31 @@ function update(time,delta){
         frame_time = 0;
         //game input
         das--;
+        d_das--;
         if(state===states.FALLING) {
             game_input();
         }
         //game loop
         if (fall_tick <= 0) {
-            if (state === states.INTRO) {
-                state = states.FALLING;
-            }
-            else if (state === states.FALLING) {
+            if (state === states.FALLING) {
+                fall_tick = 30;
                 if (collided(0, 1)) {
-                    state = states.INTRO;
-                    fall_tick = 30;
+                    d_das_reset = false;
                     solidify_board();
                 }
                 else {
                     clear_piece();
                     controlled.y++;
                     refresh_board();
-                    fall_tick = 5;
                 }
             }
             else if(state === states.CLEARING){
                 clear_line();
-                state = states.INTRO;
+                state = states.FALLING;
                 ready_next();
             }
             else if (state === states.ENDING){
-                state = states.INTRO;
+                state = states.FALLING;
                 ready_next();
                 ready_next();
                 for(let i=0;i<20;i++){
