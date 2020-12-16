@@ -392,14 +392,16 @@ function ready_next() {
 let frame_time = 0;
 
 
-let r_das = false;
+let das = {
+    shift : 0,
+    shift_charged : false,
+    rotate : false,
+    down : 0,
+    down_charged : false,
+    down_reset : true
+}
 
-let das = 0;
-let das_charged = false;
 
-let d_das_reset = true;
-let d_das = 0;
-let d_das_charged = false;
 
 const SCORE_ARRAY = [
     40,100,300,1200];
@@ -461,9 +463,9 @@ function game_input() {
         [cursors.left.isDown, -1, 0],
         [cursors.right.isDown, 1, 0],
     ]
-    if(d_das <= 0 && cursors.down.isDown && d_das_reset) {
-        d_das = d_das_charged ? 2 : 4;
-        d_das_charged = true;
+    if(das.down <= 0 && cursors.down.isDown && das.down_reset) {
+        das.down = das.down_charged ? 2 : 4;
+        das.down_charged = true;
         if(!collided(0,1)) {
             clear_piece()
             controlled.y += 1;
@@ -476,17 +478,17 @@ function game_input() {
             fall_tick =0;
         }
     }else if(!cursors.down.isDown){
-        d_das_charged = false;
-        d_das_reset = true;
+        das.down_charged = false;
+        das.down_reset = true;
         down_points = 0;
     }
     let shifted = false;
     for (let i = 0; i < 2; i++) {
         if (INPUT_GRID[i][0]) {
             shifted = true;
-            if (das <= 0) {
-                das = das_charged ? 6 : 16;
-                das_charged = true;
+            if (das.shift <= 0) {
+                das.shift = das.shift_charged ? 6 : 16;
+                das.shift_charged = true;
                 if (!collided(INPUT_GRID[i][1],0 )) {
                     clear_piece();
                     controlled.x += INPUT_GRID[i][1];
@@ -496,21 +498,21 @@ function game_input() {
         }
     }
     if (!shifted) {
-        das = 0;
-        das_charged = false;
+        das.shift = 0;
+        das.shift_charged = false;
     }
 
-    if (!r_das) {
+    if (!das.rotate) {
         if (rotators.clock.isDown) {
             rotate_by_piece(clock);
-            r_das = true;
+            das.rotate = true;
         } else if (rotators.counter_clock.isDown) {
             rotate_by_piece(c_clock);
-            r_das = true;
+            das.rotate = true;
         }
     }
     if (!rotators.clock.isDown && !rotators.counter_clock.isDown) {
-        r_das = false;
+        das.rotate = false;
     }
 }
 
@@ -535,8 +537,8 @@ function update(time,delta){
     if(frame_time > 16.5) {//limit to 60
         frame_time = 0;
         //game input
-        das--;
-        d_das--;
+        das.shift--;
+        das.down--;
         if(state===states.FALLING) {
             game_input();
         }
@@ -545,7 +547,7 @@ function update(time,delta){
             if (state === states.FALLING) {
                 fall_tick = speed_from_level();
                 if (collided(0, 1)) {
-                    d_das_reset = false;
+                    das.down_reset = false;
                     score += down_points;
                     score_text.setText(pad(score,7));
                     down_points = 0;
