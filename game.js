@@ -95,9 +95,13 @@ const TYPE_ARRAY =  [
 
 
 let n_rand = Math.floor(Math.random()*7);
-let next = PIECE_ARRAY[n_rand];
-let next_type = TYPE_ARRAY[n_rand];
-let next_id = ID_ARRAY[n_rand];
+
+let next = {
+    piece :  PIECE_ARRAY[n_rand],
+    type : TYPE_ARRAY[n_rand],
+    id :  ID_ARRAY[n_rand]
+}
+
 
 
 const config = {
@@ -311,7 +315,6 @@ function solidify_board() {
         fall_tick = 10;
         state = states.CLEARING;
         clear_animate();
-        console.log(line_cleared);
     } else {
         state = states.FALLING;
         ready_next();
@@ -332,10 +335,10 @@ function draw_next() {
         }
     }
     for (let i = 0; i < 4; i++) {
-        let x = next[i][0] + 2;
-        let y = next[i][1] + 1;
+        let x = next.piece[i][0] + 2;
+        let y = next.piece[i][1] + 1;
         next_sprites[y][x].setAlpha(1);
-        set_texture_by_level(next_sprites[y][x],next_type);
+        set_texture_by_level(next_sprites[y][x],next.type);
     }
 }
 
@@ -352,12 +355,12 @@ function full_collided(mov_x, mov_y) {
 }
 
 function set_controlled_to_next() {
-    controlled.id = next_id;
+    controlled.id = next.id;
     controlled.x = 5;
-    controlled.y = next_id === piece_id.Z ? 1 : 0;
+    controlled.y = next.id === piece_id.Z ? 1 : 0;
     controlled.rotated = false;
-    controlled.piece = JSON.parse(JSON.stringify(next));
-    controlled.type = next_type;
+    controlled.piece = JSON.parse(JSON.stringify(next.piece));
+    controlled.type = next.type;
 }
 
 function refresh_UI() {
@@ -378,14 +381,14 @@ function ready_next() {
         refresh_UI();
     }
     let r = Math.floor(Math.random() * 8);
-    let temp_next = PIECE_ARRAY[r];
-    if(r===7 || next === temp_next){
+    let temp_next = ID_ARRAY[r];
+    if(r===7 || next.id === temp_next){
         r = Math.floor(Math.random() * 7);
-        temp_next = PIECE_ARRAY[r];
+        temp_next = ID_ARRAY[r];
     }
-    next = temp_next;
-    next_type = TYPE_ARRAY[r]
-    next_id = ID_ARRAY[r];
+    next.id = temp_next;
+    next.type = TYPE_ARRAY[r]
+    next.piece = PIECE_ARRAY[r];
     draw_next();
 }
 
@@ -527,9 +530,9 @@ let down_points = 0;
 
 function randomize_next() {
     n_rand = Math.floor(Math.random()*7);
-    next = PIECE_ARRAY[n_rand];
-    next_type = TYPE_ARRAY[n_rand];
-    next_id = ID_ARRAY[n_rand];
+    next.piece = PIECE_ARRAY[n_rand];
+    next.type = TYPE_ARRAY[n_rand];
+    next.id = ID_ARRAY[n_rand];
 }
 
 function update(time,delta){
