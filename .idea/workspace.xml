@@ -1,33 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="00883f05-ad3b-4a92-ad5b-6f9557364059" name="Default Changelist" comment="next is a dict">
-      <change afterPath="$PROJECT_DIR$/assets/blocks/apple.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/blocks/blue.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/blocks/blue_white.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/blocks/cherry.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/blocks/gray.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/blocks/green.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/blocks/green_white.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/blocks/light_blue.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/blocks/lime.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/blocks/magenta.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/blocks/magenta_white.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/blocks/melrose.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/blocks/orange.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/blocks/pink.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/blocks/purple.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/blocks/purple_white.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/blocks/red.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/blocks/red_white.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/blocks/teal.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/blocks/teal_white.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/blocks/violet.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/blocks/violet_white.png" afterDir="false" />
+    <list default="true" id="00883f05-ad3b-4a92-ad5b-6f9557364059" name="Default Changelist" comment="Level Textures">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/red/gray.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/red/red.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/red/redwhite.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/game.js" beforeDir="false" afterPath="$PROJECT_DIR$/game.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -101,7 +76,7 @@
       <workItem from="1607760558138" duration="62654000" />
       <workItem from="1607868985107" duration="12398000" />
       <workItem from="1607964265954" duration="23720000" />
-      <workItem from="1608005861350" duration="10719000" />
+      <workItem from="1608005861350" duration="13369000" />
     </task>
     <task id="LOCAL-00001" summary="Init Commit">
       <created>1607771131873</created>
@@ -243,7 +218,14 @@
       <option name="project" value="LOCAL" />
       <updated>1608079260274</updated>
     </task>
-    <option name="localTasksCounter" value="21" />
+    <task id="LOCAL-00021" summary="Level Textures">
+      <created>1608087411886</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1608087411886</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -282,12 +264,15 @@
     <MESSAGE value="Final Changes" />
     <MESSAGE value="Made das a dict" />
     <MESSAGE value="next is a dict" />
-    <option name="LAST_COMMIT_MESSAGE" value="next is a dict" />
+    <MESSAGE value="Level Textures" />
+    <option name="LAST_COMMIT_MESSAGE" value="Level Textures" />
   </component>
   <component name="XDebuggerManager">
     <watches-manager>
       <configuration name="JavascriptDebugType">
         <watch expression="TEXTURE_MATRIX" />
+        <watch expression="board" />
+        <watch expression="TYPE_ARRAY" />
       </configuration>
     </watches-manager>
   </component>

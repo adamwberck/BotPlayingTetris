@@ -292,22 +292,12 @@ function clear_line() {
                 board[0].fill(0);
             }
             for (let j = 0; j < 10; j++) {
-                let block = board[i][j];
-                let alpha = block === 0 ? 0 : 1;
+                let block_num = board[i][j];
+                let alpha = block_num === 0 ? 0 : 1;
                 sprites[i][j].setAlpha(alpha);
-                if (block > 0) {
+                if (block_num > 0) {
                     let sprite = sprites[i][j];
-                    switch (block) {
-                        case 1:
-                            set_texture_by_level(sprite,types.zee);
-                            break;
-                        case 2:
-                            set_texture_by_level(sprite,types.jay);
-                            break;
-                        case 3:
-                            set_texture_by_level(sprite,types.symmetric);
-                            break;
-                    }
+                    set_texture_by_level(sprite,TYPE_ARRAY[block_num-1]);
                 }
             }
         }
@@ -368,8 +358,11 @@ function solidify_board() {
 function refresh_textures(){
     for(let i=0;i<20;i++){
         for(let j=0;j<10;j++){
-            let type = TYPE_ARRAY[Math.abs(board[i][j])-1]
-            set_texture_by_level(sprites[i][j],type);
+            let num = Math.abs(board[i][j]);
+            if(num>0) {
+                let type = TYPE_ARRAY[num - 1];
+                set_texture_by_level(sprites[i][j], type);
+            }
         }
     }
 }
@@ -642,10 +635,10 @@ function num_from_type(type) {
     if(type === types.zee){
         return 1;
     }
-    else if(type === types.jay){
+    else if(type === types.symmetric){
         return 2;
     }
-    else if(type === types.symmetric){
+    else if(type === types.jay){
         return 3;
     }
 }
