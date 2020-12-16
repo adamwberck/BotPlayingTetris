@@ -252,11 +252,12 @@ function create () {
     draw_next();
 }
 
+let intro = true;
+
 const states = {
-    INTRO: "intro",
     FALLING: "falling",
     ENDING : "ending",
-    CLEARING : "clearing"
+    CLEARING: "clearing"
 }
 
 let state = states.FALLING;
@@ -340,9 +341,8 @@ function solidify_board() {
         next_level_lines -= lines_just_cleared;
         let points = SCORE_ARRAY[lines_just_cleared - 1] * (speed_level + 1);
         score += points;
-        fall_tick = 10;
+        fall_tick = 1;
         state = states.CLEARING;
-        clear_animate();
     } else {
         state = states.FALLING;
         ready_next();
@@ -362,6 +362,7 @@ function refresh_textures(){
             }
         }
     }
+    draw_next();
 }
 
 function set_texture_by_level(sprite, type) {
@@ -411,7 +412,9 @@ function ready_next() {
         state = states.ENDING;
         fall_tick = 100;
         score = 0;
-        speed_level = 0;
+        if(!intro){
+            speed_level = 0;
+        }
         total_lines = 0;
         refresh_UI();
     }
@@ -431,6 +434,7 @@ let frame_time = 0;
 
 
 let das = {
+    intro : false,
     shift : 0,
     shift_charged : false,
     rotate : false,
@@ -457,6 +461,8 @@ function speed_from_level(){
         return SPEED_ARRAY[12]+1;
     }else if (speed_level<29){
         return SPEED_ARRAY[13]+1;
+    }else{
+        return SPEED_ARRAY[14]+1
     }
 }
 
@@ -555,10 +561,13 @@ function game_input() {
     }
 }
 
+let clear_animation_state = 0;
+
 function clear_animate() {
     for(let j=0 ;j<lines_just_cleared;j++) {
-        for (let i = 0; i < 10; i++) {
-            sprites[line_cleared[j]][i].setAlpha(0);
+        for (let i = 0; i < 2; i++) {
+            sprites[line_cleared[j]][4-clear_animation_state].setAlpha(0);
+            sprites[line_cleared[j]][clear_animation_state+5].setAlpha(0);
         }
     }
 }
@@ -571,6 +580,20 @@ function randomize_next() {
     next.id = ID_ARRAY[r];
 }
 
+function intro_input() {
+    if (cursors.left.isDown && !das.intro) {
+        speed_level = (speed_level - 1 === -1 ? 29 : speed_level - 1);
+        das.intro = true;
+    } else if (cursors.right.isDown && !das.intro) {
+        speed_level = (speed_level + 1 === 30 ? 0 : speed_level + 1);
+        das.intro = true;
+    }else if (!cursors.left.isDown && !cursors.right.isDown) {
+        das.intro = false
+    }
+    refresh_UI();
+    refresh_textures();
+}
+
 function update(time,delta){
     frame_time += delta;
     if(frame_time > 16.5) {//limit to 60
@@ -579,11 +602,16 @@ function update(time,delta){
         das.shift--;
         das.down--;
         if(state===states.FALLING) {
-            game_input();
+            if(intro){
+                intro_input();
+            }
+            else {
+                game_input();
+            }
         }
         //game loop
         if (fall_tick <= 0) {
-            if (state === states.FALLING) {
+            if (state === states.FALLING || state === states.INTRO) {
                 fall_tick = speed_from_level();
                 if (collided(0, 1)) {
                     das.down_reset = false;
@@ -599,16 +627,21 @@ function update(time,delta){
                 }
             }
             else if(state === states.CLEARING){
-                clear_line();
-                state = states.FALLING;
-                ready_next();
-                if (next_level_lines <= 0) {
-                    next_level_lines += 10;
-                    speed_level++;
-                    refresh_textures();
-                    draw_next();
+                clear_animate();
+                clear_animation_state++;
+                fall_tick = 4;
+                if(clear_animation_state>4){
+                    clear_animation_state = 0;
+                    clear_line();
+                    state = states.FALLING;
+                    ready_next();
+                    if (next_level_lines <= 0) {
+                        next_level_lines += 10;
+                        speed_level++;
+                        refresh_textures();
+                    }
+                    refresh_UI();
                 }
-                refresh_UI();
             }
             else if (state === states.ENDING){
                 state = states.FALLING;
