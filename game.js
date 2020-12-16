@@ -69,40 +69,29 @@ const types = {
     jay : "jay"
 }
 const ID_ARRAY = [
-    piece_id.J,
-    piece_id.I,
     piece_id.L,
+    piece_id.I,
+    piece_id.J,
     piece_id.O,
     piece_id.S,
     piece_id.Z,
     piece_id.T];
 const PIECE_ARRAY = [
-    pieces.J,
-    pieces.I,
     pieces.L,
+    pieces.I,
+    pieces.J,
     pieces.O,
     pieces.S,
     pieces.Z,
     pieces.T];
 const TYPE_ARRAY =  [
-    types.jay,
-    types.symmetric,
     types.zee,
+    types.symmetric,
+    types.jay,
     types.symmetric,
     types.jay,
     types.zee,
     types.symmetric];
-
-
-let n_rand = Math.floor(Math.random()*7);
-
-let next = {
-    piece :  PIECE_ARRAY[n_rand],
-    type : TYPE_ARRAY[n_rand],
-    id :  ID_ARRAY[n_rand]
-}
-
-
 
 const config = {
     type: Phaser.AUTO,
@@ -120,38 +109,93 @@ const config = {
     }
 };
 
-const game = new Phaser.Game(config);
+const TEXTURE_MATRIX = [
+    ["blue","light_blue"],
+    ["green","lime"],
+    ["purple","pink"],
+    ["blue","apple"],
+    ["magenta","teal"],
+    ["teal","melrose"],
+    ["red","gray"],
+    ["violet","cherry"],
+    ["blue","red"],
+    ["red","orange"]
+]
 
+
+
+
+
+const game = new Phaser.Game(config);
 
 board = new Array(20);
 sprites = new Array(20);
-next_sprites = new Array(3);
+next_sprites = new Array(2);
 for(let i=0;i<20;i++){
     board[i] = new Array(10);
     sprites[i] = new Array(10);
-    if(i<3) {
+    if(i<2) {
         next_sprites[i] = new Array(4);
     }
     board[i].fill(0)
 }
 
-
-let r =  Math.floor(Math.random()*7);
-
-controlled = {
+let controlled = {
     x: 5,
-    y: r === 5 ? 1 : 0,
-    piece : JSON.parse(JSON.stringify(PIECE_ARRAY[r])),
-    type : TYPE_ARRAY[r],
-    id : ID_ARRAY[r],
+    y: 0,
+    piece : JSON.parse(JSON.stringify(PIECE_ARRAY[0])),
+    type : TYPE_ARRAY[0],
+    id : ID_ARRAY[0],
     rotated : false
 };
 
+let next = {
+    piece :  PIECE_ARRAY[0],
+    type : TYPE_ARRAY[0],
+    id :  ID_ARRAY[0]
+}
+
 
 function preload () {
-    this.load.image('jay','assets/red/red.png')
-    this.load.image('symmetric','assets/red/redwhite.png')
-    this.load.image('zee','assets/red/gray.png')
+    this.load.image('blue','assets/blocks/blue.png');
+    this.load.image('blue_white','assets/blocks/blue_white.png');
+    this.load.image('light_blue','assets/blocks/light_blue.png');
+
+    this.load.image('green','assets/blocks/green.png');
+    this.load.image('green_white','assets/blocks/green_white.png');
+    this.load.image('lime','assets/blocks/lime.png');
+
+    this.load.image('purple','assets/blocks/purple.png');
+    this.load.image('purple_white','assets/blocks/purple_white.png');
+    this.load.image('pink','assets/blocks/pink.png');
+
+    //blue
+    //blue white
+    this.load.image('apple','assets/blocks/apple.png');
+
+    this.load.image('magenta','assets/blocks/magenta.png');
+    this.load.image('magenta_white','assets/blocks/magenta_white.png');
+    this.load.image('teal','assets/blocks/teal.png');
+
+    //teal
+    this.load.image('teal_white','assets/blocks/teal_white.png');
+    this.load.image('melrose','assets/blocks/melrose.png');
+
+    this.load.image('red','assets/blocks/red.png');
+    this.load.image('red_white','assets/blocks/red_white.png');
+    this.load.image('gray','assets/blocks/gray.png');
+
+    this.load.image('violet','assets/blocks/violet.png');
+    this.load.image('violet_white','assets/blocks/violet_white.png');
+    this.load.image('cherry','assets/blocks/cherry.png');
+
+    //blue
+    //blue white
+    //red
+
+    //red
+    //red white
+    this.load.image('orange','assets/blocks/orange.png');
 }
 const GRID_SIZE = 32;
 const LEFT = 240;
@@ -182,12 +226,12 @@ function create () {
         { fontFamily: 'Courier',fontSize: '35px', fill: '#FFF',fontStyle : 'bold'});
 
 
-    this.add.text(LEFT-160, TOP ,"Level",
+    this.add.text(LEFT-160, TOP ,"LEVEL",
         { fontFamily: 'monospace',fontSize: '38px', fill: '#FFF',fontStyle: 'bold'});
     level_text = this.add.text(LEFT-125, TOP+40 ,"00",
         { fontFamily: 'Courier',fontSize: '30px', fill: '#FFF',fontStyle: 'bold'});
 
-    this.add.text(LEFT-160, TOP+80 ,"Lines",
+    this.add.text(LEFT-160, TOP+80 ,"LINES",
         { fontFamily: 'monospace',fontSize: '38px', fill: '#FFF',fontStyle: 'bold'});
     lines_text = this.add.text(LEFT-135, TOP+120 ,"000",
         { fontFamily: 'Courier',fontSize: '30px', fill: '#FFF',fontStyle: 'bold'});
@@ -199,12 +243,14 @@ function create () {
         }
     }
 
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 2; i++) {
         for (let j = 0; j < 4; j++) {
             next_sprites[i][j] = this.add.image(LEFT + 420 + j * GRID_SIZE, TOP + 10 + i * GRID_SIZE, 'zee').setOrigin(0)
                 .setAlpha(0);
         }
     }
+    randomize_next();
+    ready_next();
     refresh_board();
     draw_next();
 }
@@ -305,13 +351,8 @@ function solidify_board() {
     if (lines_just_cleared > 0) {
         total_lines += lines_just_cleared;
         next_level_lines -= lines_just_cleared;
-        let points = SCORE_ARRAY[lines_just_cleared - 1] * (level + 1);
+        let points = SCORE_ARRAY[lines_just_cleared - 1] * (speed_level + 1);
         score += points;
-        if (next_level_lines <= 0) {
-            next_level_lines += 10;
-            level++;
-        }
-        refresh_UI();
         fall_tick = 10;
         state = states.CLEARING;
         clear_animate();
@@ -324,36 +365,40 @@ function solidify_board() {
     }
 }
 
+function refresh_textures(){
+    for(let i=0;i<20;i++){
+        for(let j=0;j<10;j++){
+            let type = TYPE_ARRAY[Math.abs(board[i][j])-1]
+            set_texture_by_level(sprites[i][j],type);
+        }
+    }
+}
+
 function set_texture_by_level(sprite, type) {
-    sprite.setTexture(type);
+    if(type===types.jay) {
+        sprite.setTexture(TEXTURE_MATRIX[speed_level%10][0]);
+    }
+    else if(type===types.symmetric){
+        sprite.setTexture(TEXTURE_MATRIX[speed_level%10][0].concat("_white"));
+    }
+    else{
+        sprite.setTexture(TEXTURE_MATRIX[speed_level%10][1]);
+    }
 }
 
 function draw_next() {
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 2; i++) {
         for (let j = 0; j < 4; j++) {
             next_sprites[i][j].setAlpha(0);
         }
     }
     for (let i = 0; i < 4; i++) {
         let x = next.piece[i][0] + 2;
-        let y = next.piece[i][1] + 1;
+        let y = next.piece[i][1] + (next.id===piece_id.Z? 1: 0);
         next_sprites[y][x].setAlpha(1);
         set_texture_by_level(next_sprites[y][x],next.type);
     }
 }
-
-function full_collided(mov_x, mov_y) {
-    for(let i=0;i<4;i++) {
-        let sqr = controlled.piece[i];
-        let x = sqr[0] + controlled.x + mov_x;
-        let y = sqr[1] + controlled.y + mov_y;
-        if(board[y][x]===0){
-            return false;
-        }
-    }
-    return true;
-}
-
 function set_controlled_to_next() {
     controlled.id = next.id;
     controlled.x = 5;
@@ -365,7 +410,7 @@ function set_controlled_to_next() {
 
 function refresh_UI() {
     score_text.setText(pad(score,7));
-    level_text.setText(pad(level,2));
+    level_text.setText(pad(speed_level,2));
     lines_text.setText(pad(total_lines,3));
 }
 
@@ -376,7 +421,7 @@ function ready_next() {
         state = states.ENDING;
         fall_tick = 100;
         score = 0;
-        level = 0;
+        speed_level = 0;
         total_lines = 0;
         refresh_UI();
     }
@@ -412,21 +457,21 @@ const SCORE_ARRAY = [
 const SPEED_ARRAY = [
     48,43,38,33,28,23,18,13,8,6,5,4,3,2,1];
 function speed_from_level(){
-    if(level<10){
-        return SPEED_ARRAY[level]+1;
-    }else if (level<13){
+    if(speed_level<10){
+        return SPEED_ARRAY[speed_level]+1;
+    }else if (speed_level<13){
         return SPEED_ARRAY[10]+1;
-    }else if (level<16){
+    }else if (speed_level<16){
         return SPEED_ARRAY[11]+1;
-    }else if (level<19){
+    }else if (speed_level<19){
         return SPEED_ARRAY[12]+1;
-    }else if (level<29){
+    }else if (speed_level<29){
         return SPEED_ARRAY[13]+1;
     }
 }
 
 
-let level = 0;
+let speed_level = 0;
 let total_lines = 0;
 
 
@@ -474,7 +519,7 @@ function game_input() {
             controlled.y += 1;
             down_points++;
             refresh_board();
-            if(fall_tick>48){
+            if(fall_tick>49){
                 fall_tick = speed_from_level();
             }
         }else{ //lock in piece
@@ -529,10 +574,10 @@ function clear_animate() {
 let down_points = 0;
 
 function randomize_next() {
-    n_rand = Math.floor(Math.random()*7);
-    next.piece = PIECE_ARRAY[n_rand];
-    next.type = TYPE_ARRAY[n_rand];
-    next.id = ID_ARRAY[n_rand];
+    let r = Math.floor(Math.random()*7);
+    next.piece = PIECE_ARRAY[r];
+    next.type = TYPE_ARRAY[r];
+    next.id = ID_ARRAY[r];
 }
 
 function update(time,delta){
@@ -566,6 +611,13 @@ function update(time,delta){
                 clear_line();
                 state = states.FALLING;
                 ready_next();
+                if (next_level_lines <= 0) {
+                    next_level_lines += 10;
+                    speed_level++;
+                    refresh_textures();
+                    draw_next();
+                }
+                refresh_UI();
             }
             else if (state === states.ENDING){
                 state = states.FALLING;
