@@ -95,17 +95,14 @@ const TYPE_ARRAY =  [
 
 const config = {
     type: Phaser.AUTO,
-    width: 800,
+    width: 650,
     height: 1000,
     backgroundColor: '#2d2d2d',
     parent: 'phaser-example',
     render:{
         antialias: true
     },
-    scene: {
-        preload: preload,
-        create: create,
-        update: update
+    scene: {preload,create,update
     }
 };
 
@@ -219,7 +216,7 @@ function create () {
     this.cameras.main.setZoom(.8);
     this.cameras.main.centerOn(0, 0);
 
-    this.add.grid(LEFT, TOP, 10 * GRID_SIZE, 20 * GRID_SIZE, GRID_SIZE, GRID_SIZE, 0xDDDDDD)
+    this.add.grid(LEFT, TOP, 10 * GRID_SIZE, 20 * GRID_SIZE, GRID_SIZE, GRID_SIZE, 0x000000,1.0,0x000000)
         .setOrigin(0);
 
     score_text = this.add.text(LEFT+GRID_SIZE*3,20 ,"0000000",
@@ -518,7 +515,8 @@ function game_input() {
         }else{ //lock in piece
             fall_tick =0;
         }
-    }else if(!cursors.down.isDown){
+    }
+    else if(!cursors.down.isDown){
         das.down_charged = false;
         das.down_reset = true;
         down_points = 0;

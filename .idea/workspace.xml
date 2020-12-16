@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="00883f05-ad3b-4a92-ad5b-6f9557364059" name="Default Changelist" comment="Level Textures">
+    <list default="true" id="00883f05-ad3b-4a92-ad5b-6f9557364059" name="Default Changelist" comment="Level textures fixed">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/game.js" beforeDir="false" afterPath="$PROJECT_DIR$/game.js" afterDir="false" />
     </list>
@@ -76,7 +76,7 @@
       <workItem from="1607760558138" duration="62654000" />
       <workItem from="1607868985107" duration="12398000" />
       <workItem from="1607964265954" duration="23720000" />
-      <workItem from="1608005861350" duration="13369000" />
+      <workItem from="1608005861350" duration="14732000" />
     </task>
     <task id="LOCAL-00001" summary="Init Commit">
       <created>1607771131873</created>
@@ -225,7 +225,14 @@
       <option name="project" value="LOCAL" />
       <updated>1608087411886</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="Level textures fixed">
+      <created>1608091280872</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1608091280872</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -265,7 +272,8 @@
     <MESSAGE value="Made das a dict" />
     <MESSAGE value="next is a dict" />
     <MESSAGE value="Level Textures" />
-    <option name="LAST_COMMIT_MESSAGE" value="Level Textures" />
+    <MESSAGE value="Level textures fixed" />
+    <option name="LAST_COMMIT_MESSAGE" value="Level textures fixed" />
   </component>
   <component name="XDebuggerManager">
     <watches-manager>
