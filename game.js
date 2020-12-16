@@ -106,6 +106,9 @@ const config = {
     height: 1000,
     backgroundColor: '#2d2d2d',
     parent: 'phaser-example',
+    render:{
+        antialias: true
+    },
     scene: {
         preload: preload,
         create: create,
@@ -165,7 +168,7 @@ function create () {
     rotators.counter_clock = this.input.keyboard.addKey('Z');
     //camera
     this.cameras.main.setBounds(0, 0, 800, 1000);
-    this.cameras.main.setZoom(.9);
+    this.cameras.main.setZoom(.8);
     this.cameras.main.centerOn(0, 0);
 
     this.add.grid(LEFT, TOP, 10 * GRID_SIZE, 20 * GRID_SIZE, GRID_SIZE, GRID_SIZE, 0xDDDDDD)
@@ -176,12 +179,12 @@ function create () {
 
 
     this.add.text(LEFT-160, TOP ,"Level",
-        { fontFamily: 'Arial',fontSize: '38px', fill: '#FFF'});
-    level_text = this.add.text(LEFT-130, TOP+40 ,"00",
+        { fontFamily: 'monospace',fontSize: '38px', fill: '#FFF',fontStyle: 'bold'});
+    level_text = this.add.text(LEFT-125, TOP+40 ,"00",
         { fontFamily: 'Courier',fontSize: '30px', fill: '#FFF',fontStyle: 'bold'});
 
     this.add.text(LEFT-160, TOP+80 ,"Lines",
-        { fontFamily: 'Arial',fontSize: '38px', fill: '#FFF'});
+        { fontFamily: 'monospace',fontSize: '38px', fill: '#FFF',fontStyle: 'bold'});
     lines_text = this.add.text(LEFT-135, TOP+120 ,"000",
         { fontFamily: 'Courier',fontSize: '30px', fill: '#FFF',fontStyle: 'bold'});
 
@@ -194,7 +197,7 @@ function create () {
 
     for (let i = 0; i < 3; i++) {
         for (let j = 0; j < 4; j++) {
-            next_sprites[i][j] = this.add.image(LEFT + 420 + j * GRID_SIZE, TOP + 80 + i * GRID_SIZE, 'zee').setOrigin(0)
+            next_sprites[i][j] = this.add.image(LEFT + 420 + j * GRID_SIZE, TOP + 10 + i * GRID_SIZE, 'zee').setOrigin(0)
                 .setAlpha(0);
         }
     }
@@ -280,7 +283,7 @@ function solidify_board() {
         let sqr = controlled.piece[i];
         let x = sqr[0]+controlled.x;
         let y = sqr[1]+controlled.y;
-        if(y>=0) {//Not Game Over
+        if(y>=0) {
             board[y][x] = Math.abs(board[y][x]);
         }
     }
@@ -299,14 +302,12 @@ function solidify_board() {
         total_lines += lines_just_cleared;
         next_level_lines -= lines_just_cleared;
         let points = SCORE_ARRAY[lines_just_cleared - 1] * (level + 1);
-        score += points
-        score_text.setText(pad(score,7));
+        score += points;
         if (next_level_lines <= 0) {
             next_level_lines += 10;
             level++;
         }
-        level_text.setText(pad(level,2));
-        lines_text.setText(pad(total_lines,3));
+        refresh_UI();
         fall_tick = 10;
         state = states.CLEARING;
         clear_animate();
@@ -314,7 +315,9 @@ function solidify_board() {
     } else {
         state = states.FALLING;
         ready_next();
-        refresh_board();
+        if(!collided(0,0)) {
+            refresh_board();
+        }
     }
 }
 
@@ -348,17 +351,31 @@ function full_collided(mov_x, mov_y) {
     return true;
 }
 
-function ready_next() {
+function set_controlled_to_next() {
     controlled.id = next_id;
     controlled.x = 5;
-    controlled.y = next_id===piece_id.Z ? 1 : 0;
+    controlled.y = next_id === piece_id.Z ? 1 : 0;
     controlled.rotated = false;
     controlled.piece = JSON.parse(JSON.stringify(next));
     controlled.type = next_type;
+}
+
+function refresh_UI() {
+    score_text.setText(pad(score,7));
+    level_text.setText(pad(level,2));
+    lines_text.setText(pad(total_lines,3));
+}
+
+function ready_next() {
+    set_controlled_to_next();
 
     if(collided(0,0)){//game over
         state = states.ENDING;
         fall_tick = 100;
+        score = 0;
+        level = 0;
+        total_lines = 0;
+        refresh_UI();
     }
     let r = Math.floor(Math.random() * 8);
     let temp_next = PIECE_ARRAY[r];
@@ -385,12 +402,10 @@ let d_das = 0;
 let d_das_charged = false;
 
 const SCORE_ARRAY = [
-    40,100,300,1200
-]
+    40,100,300,1200];
 
 const SPEED_ARRAY = [
-    48,43,38,33,28,23,18,13,8,6,5,4,3,2,1
-]
+    48,43,38,33,28,23,18,13,8,6,5,4,3,2,1];
 function speed_from_level(){
     if(level<10){
         return SPEED_ARRAY[level]+1;
@@ -452,6 +467,7 @@ function game_input() {
         if(!collided(0,1)) {
             clear_piece()
             controlled.y += 1;
+            down_points++;
             refresh_board();
             if(fall_tick>48){
                 fall_tick = speed_from_level();
@@ -462,6 +478,7 @@ function game_input() {
     }else if(!cursors.down.isDown){
         d_das_charged = false;
         d_das_reset = true;
+        down_points = 0;
     }
     let shifted = false;
     for (let i = 0; i < 2; i++) {
@@ -504,6 +521,14 @@ function clear_animate() {
         }
     }
 }
+let down_points = 0;
+
+function randomize_next() {
+    n_rand = Math.floor(Math.random()*7);
+    next = PIECE_ARRAY[n_rand];
+    next_type = TYPE_ARRAY[n_rand];
+    next_id = ID_ARRAY[n_rand];
+}
 
 function update(time,delta){
     frame_time += delta;
@@ -521,6 +546,9 @@ function update(time,delta){
                 fall_tick = speed_from_level();
                 if (collided(0, 1)) {
                     d_das_reset = false;
+                    score += down_points;
+                    score_text.setText(pad(score,7));
+                    down_points = 0;
                     solidify_board();
                 }
                 else {
@@ -536,14 +564,16 @@ function update(time,delta){
             }
             else if (state === states.ENDING){
                 state = states.FALLING;
-                ready_next();
-                ready_next();
+                fall_tick = speed_from_level();
                 for(let i=0;i<20;i++){
                     board[i].fill(0);
                     for(let j=0;j<10;j++){
                         sprites[i][j].setAlpha(0);
                     }
                 }
+                randomize_next();
+                ready_next();
+                refresh_board();
             }
         }
         fall_tick--;
