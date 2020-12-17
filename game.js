@@ -95,15 +95,21 @@ const TYPE_ARRAY =  [
 
 const config = {
     type: Phaser.AUTO,
+    resolution: window.devicePixelRatio,
     width: 650,
+    roundPixels: true,
     height: 1000,
     backgroundColor: '#2d2d2d',
     parent: 'phaser-example',
     render:{
         antialias: true
     },
-    scene: {preload,create,update
-    }
+    scale: {
+        mode: Phaser.FIT,
+        width: 650,
+        height: 1000
+    },
+    scene: {preload,create,update}
 };
 
 const TEXTURE_MATRIX = [
@@ -120,7 +126,9 @@ const TEXTURE_MATRIX = [
 ]
 
 
-
+const LINES_ARRAY = [
+    10,20,30,40,50,60,70,80,90,100,100,100,100,100,100,100,110,120,130,140
+]
 
 
 const game = new Phaser.Game(config);
@@ -154,6 +162,7 @@ let next = {
 
 
 function preload () {
+
     this.load.image('blue','assets/blocks/blue.png');
     this.load.image('blue_white','assets/blocks/blue_white.png');
     this.load.image('light_blue','assets/blocks/light_blue.png');
@@ -201,8 +210,11 @@ const TOP = 80;
 let cursors;
 let rotators = {};
 
+let intro_fade;
+
+let gameplay_label = new Array(4);
 let level_text;
-let lines_text;
+let level_number;
 let score_text;
 
 
@@ -216,36 +228,54 @@ function create () {
     this.cameras.main.setZoom(.8);
     this.cameras.main.centerOn(0, 0);
 
-    this.add.grid(LEFT, TOP, 10 * GRID_SIZE, 20 * GRID_SIZE, GRID_SIZE, GRID_SIZE, 0x000000,1.0,0x000000)
-        .setOrigin(0);
+    //this.add.grid(LEFT, TOP, 10 * GRID_SIZE, 20 * GRID_SIZE, GRID_SIZE, GRID_SIZE, 0x000000,1.0,0x000000).setOrigin(0);
+
+    this.add.rectangle(LEFT, TOP, 10 * GRID_SIZE, 20 * GRID_SIZE,0x000000,1).setOrigin(0);
+
 
     score_text = this.add.text(LEFT+GRID_SIZE*3,20 ,"0000000",
-        { fontFamily: 'Courier',fontSize: '35px', fill: '#FFF',fontStyle : 'bold'});
+        { fontFamily: 'Courier',fontSize: '60px', fill: '#FFF'})
 
 
-    this.add.text(LEFT-160, TOP ,"LEVEL",
-        { fontFamily: 'monospace',fontSize: '38px', fill: '#FFF',fontStyle: 'bold'});
-    level_text = this.add.text(LEFT-125, TOP+40 ,"00",
-        { fontFamily: 'Courier',fontSize: '30px', fill: '#FFF',fontStyle: 'bold'});
+    gameplay_label[0] = this.add.text(LEFT-160, TOP ,"LEVEL",
+        { fontFamily: 'monospace',fontSize: '38px', fill: '#FFF',fontStyle: 'bold'})
+        .setAlpha(0);
 
-    this.add.text(LEFT-160, TOP+80 ,"LINES",
-        { fontFamily: 'monospace',fontSize: '38px', fill: '#FFF',fontStyle: 'bold'});
-    lines_text = this.add.text(LEFT-135, TOP+120 ,"000",
-        { fontFamily: 'Courier',fontSize: '30px', fill: '#FFF',fontStyle: 'bold'});
+    gameplay_label[1] = this.add.text(LEFT-125, TOP+40 ,"00",
+        { fontFamily: 'Courier',fontSize: '30px', fill: '#FFF',fontStyle: 'bold'})
+        .setAlpha(0);
+
+    gameplay_label[2] = this.add.text(LEFT-160, TOP+80 ,"LINES",
+        { fontFamily: 'monospace',fontSize: '38px', fill: '#FFF',fontStyle: 'bold'})
+        .setAlpha(0);
+
+
+    gameplay_label[3] = this.add.text(LEFT-135, TOP+120 ,"000",
+        { fontFamily: 'Courier',fontSize: '30px', fill: '#FFF',fontStyle: 'bold'})
+        .setAlpha(0)
 
 
     for (let i = 0; i < 10; i++) {
         for (let j = 0; j < 20; j++) {
-            sprites[j][i] = this.add.image(LEFT + i * GRID_SIZE, TOP + j * GRID_SIZE, 'jay').setOrigin(0).setAlpha(0);
+            sprites[j][i] = this.add.image(LEFT + i * GRID_SIZE, TOP + j * GRID_SIZE, 'red').setOrigin(0).setAlpha(0);
         }
     }
 
     for (let i = 0; i < 2; i++) {
         for (let j = 0; j < 4; j++) {
-            next_sprites[i][j] = this.add.image(LEFT + 420 + j * GRID_SIZE, TOP + 10 + i * GRID_SIZE, 'zee').setOrigin(0)
+            next_sprites[i][j] = this.add.image(LEFT + 350 + j * GRID_SIZE, TOP + 10 + i * GRID_SIZE, 'red').setOrigin(0)
                 .setAlpha(0);
         }
     }
+
+    intro_fade = this.add.rectangle(LEFT, TOP, 10 * GRID_SIZE, 20 * GRID_SIZE,0x000000,0.8).setOrigin(0);
+
+
+    level_text = this.add.text(LEFT+110,TOP+120,"LEVEL",
+        { fontFamily: 'monospace',fontSize: '38px', fill: '#FFF',fontStyle: 'bold'})
+    level_number = this.add.text(LEFT+140,TOP+160,"00",
+        { fontFamily: 'Courier',fontSize: '38px', fill: '#FFF',fontStyle: 'bold'})
+
     randomize_next();
     ready_next();
     refresh_board();
@@ -278,7 +308,7 @@ function collided(mov_x, mov_y) {
     return false;
 }
 
-let fall_tick = 96;
+let fall_tick = 0;
 
 function clear_line() {
     for(let i=0;i<lines_just_cleared;i++) {
@@ -300,7 +330,7 @@ function clear_line() {
             }
         }
     }
-    lines_just_cleared =0;
+    lines_just_cleared = 0;
 }
 
 let line_cleared = Array(4);
@@ -321,7 +351,7 @@ function solidify_board() {
         let sqr = controlled.piece[i];
         let x = sqr[0]+controlled.x;
         let y = sqr[1]+controlled.y;
-        if(y>=0) {
+        if(y>=0 && y<20) {
             board[y][x] = Math.abs(board[y][x]);
         }
     }
@@ -383,17 +413,24 @@ function draw_next() {
             next_sprites[i][j].setAlpha(0);
         }
     }
-    for (let i = 0; i < 4; i++) {
-        let x = next.piece[i][0] + 2;
-        let y = next.piece[i][1] + (next.id===piece_id.Z? 1: 0);
-        next_sprites[y][x].setAlpha(1);
-        set_texture_by_level(next_sprites[y][x],next.type);
+    if(!intro) {
+        for (let i = 0; i < 4; i++) {
+            let x = next.piece[i][0] + 2;
+            let y = next.piece[i][1] + (next.id === piece_id.Z ? 1 : 0);
+            next_sprites[y][x].setAlpha(1);
+            set_texture_by_level(next_sprites[y][x], next.type);
+        }
     }
 }
 function set_controlled_to_next() {
     controlled.id = next.id;
     controlled.x = 5;
-    controlled.y = next.id === piece_id.Z ? 1 : 0;
+    if(!intro) {
+        controlled.y = next.id === piece_id.Z ? 1 : 0;
+    }
+    else{
+        controlled.y = -2;
+    }
     controlled.rotated = false;
     controlled.piece = JSON.parse(JSON.stringify(next.piece));
     controlled.type = next.type;
@@ -401,8 +438,9 @@ function set_controlled_to_next() {
 
 function refresh_UI() {
     score_text.setText(pad(score,7));
-    level_text.setText(pad(speed_level,2));
-    lines_text.setText(pad(total_lines,3));
+    gameplay_label[1].setText(pad(speed_level,2));
+    level_number.setText(pad(speed_level,2));
+    gameplay_label[3].setText(pad(total_lines,3));
 }
 
 function ready_next() {
@@ -410,12 +448,13 @@ function ready_next() {
 
     if(collided(0,0)){//game over
         state = states.ENDING;
-        fall_tick = 100;
         score = 0;
         if(!intro){
-            speed_level = 0;
+            fall_tick = 100;
+            intro = true;
         }
         total_lines = 0;
+        refresh_board();
         refresh_UI();
     }
     let r = Math.floor(Math.random() * 8);
@@ -583,15 +622,54 @@ function randomize_next() {
 function intro_input() {
     if (cursors.left.isDown && !das.intro) {
         speed_level = (speed_level - 1 === -1 ? 29 : speed_level - 1);
+        fall_tick = Math.min(speed_from_level(),fall_tick)
         das.intro = true;
     } else if (cursors.right.isDown && !das.intro) {
         speed_level = (speed_level + 1 === 30 ? 0 : speed_level + 1);
+        fall_tick = Math.min(speed_from_level(),fall_tick);
         das.intro = true;
     }else if (!cursors.left.isDown && !cursors.right.isDown) {
-        das.intro = false
+        das.intro = false;
     }
     refresh_UI();
     refresh_textures();
+
+    if(rotators.counter_clock.isDown || rotators.clock.isDown){
+        intro = false;
+        intro_fade.setAlpha(0);
+        level_text.setAlpha(0);
+        level_number.setAlpha(0);
+        for(let i=0;i<4;i++){
+            gameplay_label[i].setAlpha(1.0);
+        }
+        fall_tick = 96;
+        das.rotate = true;
+        next_level_lines = LINES_ARRAY[Math.min(speed_level,19)];
+        reset_game();
+    }
+}
+
+function reset_game() {
+    state = states.FALLING;
+    for(let i=0;i<20;i++){
+        board[i].fill(0);
+        for(let j=0;j<10;j++){
+            sprites[i][j].setAlpha(0);
+        }
+    }
+    if(intro) {
+        for(let i=0;i<4;i++){
+            gameplay_label[i].setAlpha(0);
+        }
+        level_text.setAlpha(1.0);
+        level_number.setAlpha(1.0)
+        intro_fade.setAlpha(0.8);
+    }
+
+
+    randomize_next();
+    ready_next();
+    refresh_board();
 }
 
 function update(time,delta){
@@ -609,11 +687,14 @@ function update(time,delta){
                 game_input();
             }
         }
+
+
         //game loop
         if (fall_tick <= 0) {
-            if (state === states.FALLING || state === states.INTRO) {
+            if (state === states.FALLING) {
+                //intro
                 fall_tick = speed_from_level();
-                if (collided(0, 1)) {
+                if ( (!intro || controlled.y > 20) && collided(0, 1)) {
                     das.down_reset = false;
                     score += down_points;
                     score_text.setText(pad(score,7));
@@ -644,17 +725,8 @@ function update(time,delta){
                 }
             }
             else if (state === states.ENDING){
-                state = states.FALLING;
+                reset_game();
                 fall_tick = speed_from_level();
-                for(let i=0;i<20;i++){
-                    board[i].fill(0);
-                    for(let j=0;j<10;j++){
-                        sprites[i][j].setAlpha(0);
-                    }
-                }
-                randomize_next();
-                ready_next();
-                refresh_board();
             }
         }
         fall_tick--;
@@ -679,7 +751,7 @@ function refresh_board() {
         let sqr = controlled.piece[i];
         let x = sqr[0]+controlled.x;
         let y = sqr[1]+controlled.y;
-        if(y>=0) {
+        if(y>=0 && y<20) {
             board[y][x] = -num_from_type(controlled.type);
             sprites[y][x].setAlpha(1);
             set_texture_by_level(sprites[y][x],controlled.type);
@@ -693,7 +765,7 @@ function clear_piece(){
         let sqr = controlled.piece[i];
         let x = sqr[0]+controlled.x;
         let y = sqr[1]+controlled.y;
-        if(y>=0) {
+        if(y>=0 && y<20) {
             board[y][x] = 0;
             sprites[y][x].setAlpha(0);
         }
