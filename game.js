@@ -96,18 +96,16 @@ const TYPE_ARRAY =  [
 const config = {
     type: Phaser.AUTO,
     resolution: window.devicePixelRatio,
-    width: 650,
     roundPixels: true,
-    height: 1000,
     backgroundColor: '#2d2d2d',
-    parent: 'phaser-example',
+    parent: 'tetris-game',
     render:{
         antialias: true
     },
     scale: {
         mode: Phaser.FIT,
         width: 650,
-        height: 1000
+        height: 700
     },
     scene: {preload,create,update}
 };
@@ -212,7 +210,6 @@ let rotators = {};
 
 let intro_fade;
 
-let gameplay_label = new Array(4);
 let level_text;
 let level_number;
 let score_text;
@@ -228,31 +225,9 @@ function create () {
     this.cameras.main.setZoom(.8);
     this.cameras.main.centerOn(0, 0);
 
-    //this.add.grid(LEFT, TOP, 10 * GRID_SIZE, 20 * GRID_SIZE, GRID_SIZE, GRID_SIZE, 0x000000,1.0,0x000000).setOrigin(0);
+    this.add.grid(LEFT, TOP, 10 * GRID_SIZE, 20 * GRID_SIZE, GRID_SIZE, GRID_SIZE, 0x000000,1.0,0x000000).setOrigin(0);
 
-    this.add.rectangle(LEFT, TOP, 10 * GRID_SIZE, 20 * GRID_SIZE,0x000000,1).setOrigin(0);
-
-
-    score_text = this.add.text(LEFT+GRID_SIZE*3,20 ,"0000000",
-        { fontFamily: 'Courier',fontSize: '60px', fill: '#FFF'})
-
-
-    gameplay_label[0] = this.add.text(LEFT-160, TOP ,"LEVEL",
-        { fontFamily: 'monospace',fontSize: '38px', fill: '#FFF',fontStyle: 'bold'})
-        .setAlpha(0);
-
-    gameplay_label[1] = this.add.text(LEFT-125, TOP+40 ,"00",
-        { fontFamily: 'Courier',fontSize: '30px', fill: '#FFF',fontStyle: 'bold'})
-        .setAlpha(0);
-
-    gameplay_label[2] = this.add.text(LEFT-160, TOP+80 ,"LINES",
-        { fontFamily: 'monospace',fontSize: '38px', fill: '#FFF',fontStyle: 'bold'})
-        .setAlpha(0);
-
-
-    gameplay_label[3] = this.add.text(LEFT-135, TOP+120 ,"000",
-        { fontFamily: 'Courier',fontSize: '30px', fill: '#FFF',fontStyle: 'bold'})
-        .setAlpha(0)
+    //this.add.rectangle(LEFT, TOP, 10 * GRID_SIZE, 20 * GRID_SIZE,0x000000,1).setOrigin(0);
 
 
     for (let i = 0; i < 10; i++) {
@@ -271,10 +246,11 @@ function create () {
     intro_fade = this.add.rectangle(LEFT, TOP, 10 * GRID_SIZE, 20 * GRID_SIZE,0x000000,0.8).setOrigin(0);
 
 
+    /*
     level_text = this.add.text(LEFT+110,TOP+120,"LEVEL",
         { fontFamily: 'monospace',fontSize: '38px', fill: '#FFF',fontStyle: 'bold'})
     level_number = this.add.text(LEFT+140,TOP+160,"00",
-        { fontFamily: 'Courier',fontSize: '38px', fill: '#FFF',fontStyle: 'bold'})
+        { fontFamily: 'Courier',fontSize: '38px', fill: '#FFF',fontStyle: 'bold'})*/
 
     randomize_next();
     ready_next();
@@ -356,11 +332,11 @@ function solidify_board() {
         }
     }
     for(let i=0;i<20;i++){
-        for(let j=0;j<10;j++){
+        for(let j=9;j>=0;j--){
             if(board[i][j]===0){
-                j=10;
+                j=-1;
             }
-            else if(j>=9){
+            else if(j<=0){
                 line_cleared[lines_just_cleared]=i;
                 lines_just_cleared++;
             }
@@ -371,6 +347,7 @@ function solidify_board() {
         next_level_lines -= lines_just_cleared;
         let points = SCORE_ARRAY[lines_just_cleared - 1] * (speed_level + 1);
         score += points;
+        refresh_UI();
         fall_tick = 1;
         state = states.CLEARING;
     } else {
@@ -378,6 +355,7 @@ function solidify_board() {
         ready_next();
         if(!collided(0,0)) {
             refresh_board();
+            console.log("intro log");
         }
     }
 }
@@ -437,10 +415,10 @@ function set_controlled_to_next() {
 }
 
 function refresh_UI() {
-    score_text.setText(pad(score,7));
-    gameplay_label[1].setText(pad(speed_level,2));
-    level_number.setText(pad(speed_level,2));
-    gameplay_label[3].setText(pad(total_lines,3));
+    //score_text.setText(pad(score,7));
+    document.getElementById("tetris_score").innerHTML = pad(score,7);
+    document.getElementById("level_label").innerHTML = "LEVEL<br>".concat(pad(speed_level,2));
+    document.getElementById("lines_label").innerHTML = "LINES<br>".concat(pad(total_lines,3));
 }
 
 function ready_next() {
@@ -620,28 +598,27 @@ function randomize_next() {
 }
 
 function intro_input() {
-    if (cursors.left.isDown && !das.intro) {
+    das.intro--;
+    if (cursors.left.isDown && das.intro<=0) {
         speed_level = (speed_level - 1 === -1 ? 29 : speed_level - 1);
         fall_tick = Math.min(speed_from_level(),fall_tick)
-        das.intro = true;
-    } else if (cursors.right.isDown && !das.intro) {
+        das.intro = 10;
+        document.getElementById("level_intro").innerHTML = "LEVEL<br>".concat(pad(speed_level,2));
+    } else if (cursors.right.isDown && das.intro<=0) {
         speed_level = (speed_level + 1 === 30 ? 0 : speed_level + 1);
         fall_tick = Math.min(speed_from_level(),fall_tick);
-        das.intro = true;
+        das.intro = 10;
+        document.getElementById("level_intro").innerHTML = "LEVEL<br>".concat(pad(speed_level,2));
     }else if (!cursors.left.isDown && !cursors.right.isDown) {
-        das.intro = false;
+        das.intro = 0;
     }
-    refresh_UI();
     refresh_textures();
 
     if(rotators.counter_clock.isDown || rotators.clock.isDown){
         intro = false;
         intro_fade.setAlpha(0);
-        level_text.setAlpha(0);
-        level_number.setAlpha(0);
-        for(let i=0;i<4;i++){
-            gameplay_label[i].setAlpha(1.0);
-        }
+        document.getElementById("level_intro").innerHTML = "";
+        refresh_UI();
         fall_tick = 96;
         das.rotate = true;
         next_level_lines = LINES_ARRAY[Math.min(speed_level,19)];
@@ -658,11 +635,9 @@ function reset_game() {
         }
     }
     if(intro) {
-        for(let i=0;i<4;i++){
-            gameplay_label[i].setAlpha(0);
-        }
-        level_text.setAlpha(1.0);
-        level_number.setAlpha(1.0)
+        document.getElementById("level_label").innerHTML = "";
+        document.getElementById("lines_label").innerHTML = "";
+        document.getElementById("level_intro").innerHTML = "LEVEL<br>".concat(pad(speed_level,2));
         intro_fade.setAlpha(0.8);
     }
 
@@ -694,10 +669,16 @@ function update(time,delta){
             if (state === states.FALLING) {
                 //intro
                 fall_tick = speed_from_level();
-                if ( (!intro || controlled.y > 20) && collided(0, 1)) {
+                if(intro && controlled.y > 20) {
+                    state = states.FALLING;
+                    ready_next();
+                    refresh_board();
+                }
+                else if (!intro && collided(0, 1)) {
                     das.down_reset = false;
                     score += down_points;
-                    score_text.setText(pad(score,7));
+                    //score_text.setText(pad(score,7));
+                    document.getElementById("tetris_score").innerHTML = pad(score,7);
                     down_points = 0;
                     solidify_board();
                 }

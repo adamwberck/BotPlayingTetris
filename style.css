@@ -1,0 +1,41 @@
+@font-face {
+    font-family: Hun; src: url('assets/fonts/HunDIN1451.ttf') format("truetype");
+}
+
+.label{
+    position: absolute;
+    color: white;
+    font-family: Hun, monospace;
+    text-align: center;
+    line-height: 1.0;
+}
+
+#tetris-game {
+    /* optional */
+    width: 650px;
+    height: 700px;
+    margin: 30px;
+    border: 8px solid black;
+}
+
+#tetris_score{
+    top: 30px;
+    left: 310px;
+}
+
+#level_label{
+    top: 120px;
+    left: 100px;
+}
+
+#lines_label{
+    top: 200px;
+    left: 100px;
+}
+
+#level_intro{
+    top: 150px;
+    left: 310px;
+    font-size: 35px;
+    line-height: 1.2;
+}

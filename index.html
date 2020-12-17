@@ -1,19 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <style media='screen' type='text/css'>
-        @font-face {
-            font-family: Hun;
-            src: url('assets/fonts/HunDIN1451.ttf');
-            font-weight:10;
-            font-weight:normal;
-        }
-    </style>
-    <div style="font-family:Hun; position:absolute; left:-1000px; visibility:hidden;">.</div>
     <title>Bot Playing Tetris</title>
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.15.1/dist/phaser-arcade-physics.min.js"></script>
-    <script src="game.js"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="tetris-game">
+        <h1 id="tetris_score" class="label">0000000</h1>
+        <h1 id="level_label" class="label"></h1>
+        <h1 id="lines_label" class="label"></h1>
+        <h1 id="level_intro" class="label">LEVEL<br>00</h1>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.15.1/dist/phaser.min.js"></script>
+    <script src="game.js"></script>
 </body>
 </html>
